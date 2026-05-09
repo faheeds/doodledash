@@ -10,24 +10,17 @@ const KEYS = {
 export type GalleryEntry = {
   id: string;
   prompt: string;
-  imageUri: string;
+  svgData: string;      // serialized strokes as JSON
   createdAt: string;
+  aiScore?: number;
+  aiFeedback?: string;
 };
 
 export const Storage = {
-  async getUsername(): Promise<string | null> {
-    return AsyncStorage.getItem(KEYS.USERNAME);
-  },
-  async setUsername(name: string): Promise<void> {
-    return AsyncStorage.setItem(KEYS.USERNAME, name);
-  },
-  async isTutorialDone(): Promise<boolean> {
-    const val = await AsyncStorage.getItem(KEYS.TUTORIAL_DONE);
-    return val === 'true';
-  },
-  async setTutorialDone(): Promise<void> {
-    return AsyncStorage.setItem(KEYS.TUTORIAL_DONE, 'true');
-  },
+  async getUsername(): Promise<string | null> { return AsyncStorage.getItem(KEYS.USERNAME); },
+  async setUsername(name: string): Promise<void> { return AsyncStorage.setItem(KEYS.USERNAME, name); },
+  async isTutorialDone(): Promise<boolean> { return (await AsyncStorage.getItem(KEYS.TUTORIAL_DONE)) === 'true'; },
+  async setTutorialDone(): Promise<void> { return AsyncStorage.setItem(KEYS.TUTORIAL_DONE, 'true'); },
   async getGallery(): Promise<GalleryEntry[]> {
     const raw = await AsyncStorage.getItem(KEYS.GALLERY);
     return raw ? JSON.parse(raw) : [];
@@ -35,12 +28,15 @@ export const Storage = {
   async addToGallery(entry: GalleryEntry): Promise<void> {
     const gallery = await Storage.getGallery();
     gallery.unshift(entry);
+    return AsyncStorage.setItem(KEYS.GALLERY, JSON.stringify(gallery.slice(0, 50)));
+  },
+  async updateGalleryEntry(id: string, updates: Partial<GalleryEntry>): Promise<void> {
+    const gallery = await Storage.getGallery();
+    const idx = gallery.findIndex(e => e.id === id);
+    if (idx !== -1) { gallery[idx] = { ...gallery[idx], ...updates }; }
     return AsyncStorage.setItem(KEYS.GALLERY, JSON.stringify(gallery));
   },
-  async getSparks(): Promise<number> {
-    const val = await AsyncStorage.getItem(KEYS.SPARKS);
-    return val ? parseInt(val, 10) : 0;
-  },
+  async getSparks(): Promise<number> { return parseInt((await AsyncStorage.getItem(KEYS.SPARKS)) || '0', 10); },
   async addSparks(amount: number): Promise<void> {
     const current = await Storage.getSparks();
     return AsyncStorage.setItem(KEYS.SPARKS, String(current + amount));

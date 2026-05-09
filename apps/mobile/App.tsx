@@ -15,7 +15,7 @@ export type RootStackParamList = {
   Tutorial: undefined;
   Play: undefined;
   Draw: { prompt: string };
-  Result: { prompt: string };
+  Result: { prompt: string; entryId: string };
   Gallery: undefined;
 };
 

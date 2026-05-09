@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
-import DrawingCanvas from '../components/canvas/DrawingCanvas';
+import DrawingCanvas, { Stroke } from '../components/canvas/DrawingCanvas';
 import Toolbar from '../components/canvas/Toolbar';
 import CountdownTimer from '../components/canvas/CountdownTimer';
 import { useDrawing } from '../hooks/useDrawing';
@@ -13,6 +13,17 @@ import { COLORS } from '../constants/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Draw'>;
 
+// Build a minimal SVG string from strokes for storage
+function strokesToSVG(strokes: Stroke[], w = 300, h = 300, bg = '#FFFFFF'): string {
+  const lastFill = [...strokes].reverse().find(s => s.isFill);
+  const bgColor = lastFill ? lastFill.fillColor! : bg;
+  const paths = strokes
+    .filter(s => !s.isFill && s.points)
+    .map(s => `<path d="${s.points}" stroke="${s.color}" stroke-width="${s.size}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`)
+    .join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="${bgColor}"/>${paths}</svg>`;
+}
+
 export default function DrawScreen({ navigation, route }: Props) {
   const { prompt } = route.params;
   const [color, setColor] = useState('#000000');
@@ -20,16 +31,15 @@ export default function DrawScreen({ navigation, route }: Props) {
   const [tool, setTool] = useState<'pen' | 'eraser' | 'fill'>('pen');
   const [magicStampUsed, setMagicStampUsed] = useState(false);
   const { strokes, addStroke, updateStrokes, undo, canUndo } = useDrawing();
+  const strokesRef = useRef(strokes);
+  React.useEffect(() => { strokesRef.current = strokes; }, [strokes]);
 
   const handleTimeUp = useCallback(async () => {
-    try { await Storage.addSparks(50); } catch (e) { console.warn(e); }
-    await Storage.addToGallery({
-      id: Date.now().toString(),
-      prompt,
-      imageUri: '',
-      createdAt: new Date().toISOString(),
-    });
-    navigation.replace('Result', { prompt });
+    const entryId = Date.now().toString();
+    const svgData = strokesToSVG(strokesRef.current);
+    await Storage.addToGallery({ id: entryId, prompt, svgData, createdAt: new Date().toISOString() });
+    await Storage.addSparks(50);
+    navigation.replace('Result', { prompt, entryId });
   }, [prompt, navigation]);
 
   const { seconds, start } = useTimer(GAME_CONSTANTS.DRAW_TIME_SECONDS, handleTimeUp);
@@ -39,7 +49,7 @@ export default function DrawScreen({ navigation, route }: Props) {
     if (magicStampUsed) return;
     setMagicStampUsed(true);
     Alert.alert('✨ Magic Stamp!', 'A sparkle was added to your drawing!');
-    addStroke({ id: 'magic-' + Date.now(), points: 'M 100 100 L 150 150 L 100 200 L 50 150 Z', color, size: 3 });
+    addStroke({ id: 'magic-' + Date.now(), points: 'M 80 80 L 120 80 L 100 40 Z M 100 120 L 80 160 L 120 160 Z', color, size: 3 });
   }, [magicStampUsed, color, addStroke]);
 
   const handleDone = () => Alert.alert('Submit?', "Done drawing?", [
