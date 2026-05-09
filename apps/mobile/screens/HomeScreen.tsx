@@ -24,30 +24,37 @@ export default function HomeScreen({ navigation }: Props) {
     init();
   }, []);
 
-  if (loading) return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;
+  if (loading) return (
+    <SafeAreaView style={styles.safe}>
+      <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />
+    </SafeAreaView>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.logo}>🎨 Doodle Dash</Text>
+            <Text style={styles.logo}>Doodle Dash</Text>
             <Text style={styles.greeting}>Hey, {username}!</Text>
           </View>
           <View style={styles.sparksChip}>
-            <Text style={styles.sparksText}>⚡ {sparks}</Text>
+            <Text style={styles.sparksText}>{sparks}</Text>
           </View>
         </View>
 
         <View style={styles.hero}>
           <Text style={styles.heroEmoji}>✏️</Text>
           <Text style={styles.heroTitle}>Ready to draw?</Text>
-          <Text style={styles.heroSub}>Get a prompt, draw it in 60 seconds,{'\n'}let the world judge your masterpiece.</Text>
+          <Text style={styles.heroSub}>Get a prompt, draw it in 60 seconds,{'\n'}let the AI judge your masterpiece.</Text>
         </View>
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.playBtn} onPress={() => navigation.navigate('Play')}>
-            <Text style={styles.playBtnText}>🎯 Start Drawing</Text>
+            <Text style={styles.playBtnText}>Solo Practice</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.multiBtn} onPress={() => navigation.navigate('Lobby')}>
+            <Text style={styles.multiBtnText}>Play with Friends</Text>
           </TouchableOpacity>
           <View style={styles.secondaryRow}>
             <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('Gallery')}>
@@ -67,11 +74,11 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.sketchbook}>
-          <Text style={styles.sketchbookTitle}>📓 Sketchbook 1: First Day Doodles</Text>
+          <Text style={styles.sketchbookTitle}>Sketchbook 1: First Day Doodles</Text>
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${Math.min((sparks / 500) * 100, 100)}%` }]} />
           </View>
-          <Text style={styles.progressLabel}>{sparks} / 500 ⚡ to unlock Sketchbook 2</Text>
+          <Text style={styles.progressLabel}>{sparks} / 500 Sparks to unlock Sketchbook 2</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -86,13 +93,15 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 14, color: COLORS.textLight, fontWeight: '600' },
   sparksChip: { backgroundColor: '#FEF3C7', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
   sparksText: { fontSize: 14, fontWeight: '800', color: '#92400E' },
-  hero: { alignItems: 'center', marginBottom: 32 },
-  heroEmoji: { fontSize: 72, marginBottom: 12 },
+  hero: { alignItems: 'center', marginBottom: 28 },
+  heroEmoji: { fontSize: 64, marginBottom: 12 },
   heroTitle: { fontSize: 28, fontWeight: '900', color: COLORS.text, marginBottom: 8 },
   heroSub: { fontSize: 14, color: COLORS.textLight, textAlign: 'center', lineHeight: 22 },
   actions: { gap: 12, marginBottom: 24 },
-  playBtn: { backgroundColor: COLORS.primary, borderRadius: 20, padding: 20, alignItems: 'center' },
+  playBtn: { backgroundColor: COLORS.primary, borderRadius: 20, padding: 18, alignItems: 'center' },
   playBtnText: { fontSize: 20, fontWeight: '900', color: '#fff' },
+  multiBtn: { backgroundColor: '#7C3AED', borderRadius: 20, padding: 18, alignItems: 'center' },
+  multiBtnText: { fontSize: 20, fontWeight: '900', color: '#fff' },
   secondaryRow: { flexDirection: 'row', gap: 8 },
   secondaryBtn: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 14, alignItems: 'center', gap: 4, elevation: 1 },
   secondaryIcon: { fontSize: 28 },
