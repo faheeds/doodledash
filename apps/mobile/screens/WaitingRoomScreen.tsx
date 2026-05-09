@@ -1,20 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView,
-  ScrollView, ActivityIndicator, Alert, Clipboard,
+  ScrollView, ActivityIndicator, Clipboard,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
-import { supabase } from '../utils/supabase';
+import { supabase, subscribeToMatch, subscribeToPlayers } from '../utils/supabase';
 import { COLORS } from '../constants/colors';
 import { PROMPTS } from '../constants/prompts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WaitingRoom'>;
+type Player = { user_id: string | null; display_name: string; is_ready: boolean; is_bot: boolean };
 
-type Player = { id: string; display_name: string; is_ready: boolean; is_bot: boolean };
-
-const BOT_NAMES = ['RobotDoodle9', 'CrazyBrush7', 'PixelPanda3', 'DoodleBot42',
-                   'SketchBot5', 'ArtBot99', 'QuickDraw7', 'DrawMaster3'];
+const BOT_NAMES = ['RobotDoodle9','CrazyBrush7','PixelPanda3','DoodleBot42',
+                   'SketchBot5','ArtBot99','QuickDraw7','DrawMaster3'];
 
 export default function WaitingRoomScreen({ navigation, route }: Props) {
   const { matchId, roomCode, isHost, userId, username } = route.params;
@@ -22,97 +21,45 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
   const [isReady, setIsReady] = useState(false);
   const [starting, setStarting] = useState(false);
   const [copied, setCopied] = useState(false);
-  const channelRef = useRef<any>(null);
+  const unsubMatch = useRef<(() => void) | null>(null);
+  const unsubPlayers = useRef<(() => void) | null>(null);
 
   const loadPlayers = async () => {
-    const { data } = await supabase
-      .from('match_players')
-      .select('user_id, display_name, is_ready, is_bot')
-      .eq('match_id', matchId);
-    if (data) setPlayers(data.map(p => ({ id: p.user_id, display_name: p.display_name || '?', is_ready: p.is_ready, is_bot: p.is_bot })));
+    const { data } = await supabase.from('match_players').select('user_id,display_name,is_ready,is_bot', { eq: ['match_id', matchId] });
+    if (data) setPlayers(data as Player[]);
   };
 
   useEffect(() => {
     loadPlayers();
-
-    // Subscribe to player list + match state changes
-    channelRef.current = supabase
-      .channel(`match-${matchId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'match_players', filter: `match_id=eq.${matchId}` }, () => loadPlayers())
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}` }, (payload) => {
-        const match = payload.new as any;
-        if (match.status === 'drawing') {
-          navigation.replace('MultiDraw', {
-            matchId, roomCode, userId, username,
-            prompt: match.current_prompt,
-            round: match.current_round,
-            totalRounds: match.total_rounds,
-            isHost,
-          });
-        }
-      })
-      .subscribe();
-
-    return () => { channelRef.current?.unsubscribe(); };
+    unsubMatch.current = subscribeToMatch(matchId, (payload) => {
+      const match = payload.new as any;
+      if (match.status === 'drawing') {
+        navigation.replace('MultiDraw', { matchId, roomCode, userId, username, prompt: match.current_prompt, round: match.current_round, totalRounds: match.total_rounds, isHost });
+      }
+    });
+    unsubPlayers.current = subscribeToPlayers(matchId, loadPlayers);
+    return () => { unsubMatch.current?.(); unsubPlayers.current?.(); };
   }, []);
 
   const toggleReady = async () => {
     const next = !isReady;
     setIsReady(next);
-    await supabase.from('match_players')
-      .update({ is_ready: next })
-      .eq('match_id', matchId)
-      .eq('user_id', userId);
-  };
-
-  const handleStart = async () => {
-    if (players.length < 2) {
-      Alert.alert('Need more players', 'You need at least 2 players (or add bots) to start!');
-      return;
-    }
-    setStarting(true);
-
-    // Fill with bots to reach 4 players minimum
-    const humanCount = players.filter(p => !p.is_bot).length;
-    const botsNeeded = Math.max(0, 4 - humanCount);
-    const usedBotNames = players.filter(p => p.is_bot).map(p => p.display_name);
-    const availableBots = BOT_NAMES.filter(n => !usedBotNames.includes(n));
-
-    for (let i = 0; i < botsNeeded; i++) {
-      const botName = availableBots[i] || `Bot${i + 1}`;
-      // Create a fake UUID for the bot using a deterministic id
-      const botId = `00000000-0000-0000-0000-${String(Date.now() + i).padStart(12, '0')}`;
-      await supabase.from('match_players').insert({
-        match_id: matchId,
-        user_id: null,
-        display_name: botName,
-        is_bot: true,
-        is_ready: true,
-      }).select();
-    }
-
-    // Pick first prompt
-    const prompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
-
-    // Start the match
-    await supabase.from('matches').update({
-      status: 'drawing',
-      current_round: 1,
-      current_prompt: prompt,
-    }).eq('id', matchId);
+    await supabase.from('match_players').update({ is_ready: next }).eq('match_id', matchId);
   };
 
   const addBot = async () => {
-    if (players.length >= 8) { Alert.alert('Room full', 'Max 8 players!'); return; }
+    if (players.length >= 8) return;
     const usedNames = players.map(p => p.display_name);
     const botName = BOT_NAMES.find(n => !usedNames.includes(n)) || `Bot${players.length}`;
-    await supabase.from('match_players').insert({
-      match_id: matchId,
-      user_id: null,
-      display_name: botName,
-      is_bot: true,
-      is_ready: true,
-    });
+    await supabase.from('match_players').insert({ match_id: matchId, user_id: null, display_name: botName, is_bot: true, is_ready: true });
+    loadPlayers();
+  };
+
+  const handleStart = async () => {
+    if (players.length < 2) return;
+    setStarting(true);
+    const prompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
+    await supabase.from('matches').update({ status: 'drawing', current_round: 1, current_prompt: prompt, total_rounds: 5 }).eq('id', matchId);
   };
 
   const copyCode = () => {
@@ -126,23 +73,21 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        {/* Room code */}
         <View style={styles.codeCard}>
-          <Text style={styles.codeLabel}>Room Code</Text>
+          <Text style={styles.codeLabel}>ROOM CODE</Text>
           <Text style={styles.code}>{roomCode}</Text>
           <TouchableOpacity style={styles.copyBtn} onPress={copyCode}>
             <Text style={styles.copyText}>{copied ? '✅ Copied!' : '📋 Copy'}</Text>
           </TouchableOpacity>
-          <Text style={styles.codeSub}>Share this code with friends!</Text>
+          <Text style={styles.codeSub}>Share this with friends!</Text>
         </View>
 
-        {/* Players */}
         <Text style={styles.sectionLabel}>Players ({players.length}/8)</Text>
         <ScrollView style={styles.playerList}>
           {players.map((p, i) => (
-            <View key={p.id || i} style={styles.playerRow}>
+            <View key={p.user_id || i} style={styles.playerRow}>
               <Text style={styles.playerEmoji}>{p.is_bot ? '🤖' : '🎨'}</Text>
-              <Text style={styles.playerName}>{p.display_name}{p.id === userId ? ' (you)' : ''}</Text>
+              <Text style={styles.playerName}>{p.display_name}{p.user_id === userId ? ' (you)' : ''}</Text>
               <View style={[styles.readyBadge, { backgroundColor: p.is_ready ? '#22C55E' : '#E5E7EB' }]}>
                 <Text style={[styles.readyText, { color: p.is_ready ? '#fff' : '#9CA3AF' }]}>
                   {p.is_ready ? '✓ Ready' : 'Waiting'}
@@ -150,35 +95,22 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
               </View>
             </View>
           ))}
-          {players.length < 4 && (
-            <Text style={styles.botHint}>Tip: Need 4 players minimum — add bots to fill!</Text>
-          )}
+          {players.length < 4 && <Text style={styles.botHint}>Need 4 players — add bots to fill!</Text>}
         </ScrollView>
 
-        {/* Actions */}
         <View style={styles.actions}>
           {!isHost && (
-            <TouchableOpacity
-              style={[styles.readyBtn, isReady && styles.readyBtnActive]}
-              onPress={toggleReady}>
+            <TouchableOpacity style={[styles.readyBtn, isReady && styles.readyBtnActive]} onPress={toggleReady}>
               <Text style={styles.readyBtnText}>{isReady ? '✅ Ready!' : 'Mark Ready'}</Text>
             </TouchableOpacity>
           )}
-
           {isHost && (
             <>
               <TouchableOpacity style={styles.botBtn} onPress={addBot}>
                 <Text style={styles.botBtnText}>+ Add Bot 🤖</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.startBtn, (!allReady && players.length >= 2) && styles.startBtnWarning]}
-                onPress={handleStart}
-                disabled={starting}>
-                {starting
-                  ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.startBtnText}>
-                      {allReady ? '🚀 Start Game!' : players.length >= 2 ? '▶ Start Anyway' : 'Waiting for players...'}
-                    </Text>}
+              <TouchableOpacity style={[styles.startBtn, !allReady && players.length >= 2 && styles.startBtnWarning]} onPress={handleStart} disabled={starting || players.length < 2}>
+                {starting ? <ActivityIndicator color="#fff" /> : <Text style={styles.startBtnText}>{allReady ? '🚀 Start Game!' : players.length >= 2 ? '▶ Start Anyway' : 'Need 2+ players'}</Text>}
               </TouchableOpacity>
             </>
           )}
@@ -191,10 +123,7 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.background },
   container: { flex: 1, padding: 16 },
-  codeCard: {
-    backgroundColor: COLORS.primary, borderRadius: 20, padding: 20,
-    alignItems: 'center', marginBottom: 16,
-  },
+  codeCard: { backgroundColor: COLORS.primary, borderRadius: 20, padding: 20, alignItems: 'center', marginBottom: 16 },
   codeLabel: { fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: '600', letterSpacing: 1 },
   code: { fontSize: 44, fontWeight: '900', color: '#fff', letterSpacing: 8, marginVertical: 4 },
   copyBtn: { backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6, marginTop: 4 },
@@ -202,25 +131,17 @@ const styles = StyleSheet.create({
   codeSub: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 8 },
   sectionLabel: { fontSize: 14, fontWeight: '700', color: COLORS.textLight, letterSpacing: 1, marginBottom: 8 },
   playerList: { flex: 1, marginBottom: 12 },
-  playerRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    borderRadius: 12, padding: 12, marginBottom: 8, elevation: 1,
-  },
+  playerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 8, elevation: 1 },
   playerEmoji: { fontSize: 24, marginRight: 10 },
   playerName: { flex: 1, fontSize: 16, fontWeight: '700', color: COLORS.text },
   readyBadge: { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   readyText: { fontSize: 12, fontWeight: '700' },
   botHint: { fontSize: 13, color: COLORS.textLight, textAlign: 'center', marginTop: 8, fontStyle: 'italic' },
   actions: { gap: 10 },
-  readyBtn: {
-    backgroundColor: '#E5E7EB', borderRadius: 20, paddingVertical: 16, alignItems: 'center',
-  },
+  readyBtn: { backgroundColor: '#E5E7EB', borderRadius: 20, paddingVertical: 16, alignItems: 'center' },
   readyBtnActive: { backgroundColor: '#22C55E' },
   readyBtnText: { fontSize: 17, fontWeight: '800', color: '#fff' },
-  botBtn: {
-    backgroundColor: '#F3F4F6', borderRadius: 20, paddingVertical: 12,
-    alignItems: 'center', borderWidth: 2, borderColor: '#E5E7EB',
-  },
+  botBtn: { backgroundColor: '#F3F4F6', borderRadius: 20, paddingVertical: 12, alignItems: 'center', borderWidth: 2, borderColor: '#E5E7EB' },
   botBtnText: { fontSize: 16, fontWeight: '700', color: COLORS.text },
   startBtn: { backgroundColor: COLORS.primary, borderRadius: 20, paddingVertical: 16, alignItems: 'center' },
   startBtnWarning: { backgroundColor: '#F59E0B' },

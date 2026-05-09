@@ -7,7 +7,7 @@ import Toolbar from '../components/canvas/Toolbar';
 import CountdownTimer from '../components/canvas/CountdownTimer';
 import { useDrawing } from '../hooks/useDrawing';
 import { useTimer } from '../hooks/useTimer';
-import { supabase } from '../utils/supabase';
+import { supabase, subscribeToMatch } from '../utils/supabase';
 import { COLORS } from '../constants/colors';
 import { PROMPTS } from '../constants/prompts';
 import { GAME_CONSTANTS } from '../constants/game';
@@ -96,20 +96,15 @@ export default function MultiDrawScreen({ navigation, route }: Props) {
     { text: 'Submit!', onPress: submit },
   ]);
 
-  // Non-host: listen for host moving to voting
+  // Listen for host moving to voting (polling-based)
   useEffect(() => {
-    const ch = supabase
-      .channel(`multidraw-${matchId}-${round}`)
-      .on('postgres_changes', {
-        event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}`,
-      }, (payload) => {
-        const match = payload.new as any;
-        if (match.status === 'voting') {
-          navigation.replace('Reveal', { matchId, roomCode, userId, username, prompt, round, totalRounds, isHost });
-        }
-      })
-      .subscribe();
-    return () => { ch.unsubscribe(); };
+    const unsub = subscribeToMatch(matchId, (payload) => {
+      const match = payload.new as any;
+      if (match.status === 'voting') {
+        navigation.replace('Reveal', { matchId, roomCode, userId, username, prompt, round, totalRounds, isHost });
+      }
+    });
+    return unsub;
   }, []);
 
   return (
