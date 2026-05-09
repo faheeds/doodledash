@@ -59,11 +59,9 @@ export default function MultiDrawScreen({ navigation, route }: Props) {
 
     if (isHost) {
       // Add bot drawings
-      const { data: bots } = await supabase
-        .from('match_players')
-        .select('display_name')
-        .eq('match_id', matchId)
-        .eq('is_bot', true);
+      const { data: bots } = await supabase.from('match_players').select('display_name', {
+        eqs: [['match_id', matchId], ['is_bot', true]],
+      });
 
       for (const _bot of (bots || [])) {
         await supabase.from('drawings').insert({

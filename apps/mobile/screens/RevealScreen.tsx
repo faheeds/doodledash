@@ -28,17 +28,14 @@ export default function RevealScreen({ navigation, route }: Props) {
   useEffect(() => {
     const load = async () => {
       // Load drawings for this round
-      const { data: drawingRows } = await supabase
-        .from('drawings')
-        .select('id, player_id, svg_data')
-        .eq('match_id', matchId)
-        .eq('round_number', round);
+      const { data: drawingRows } = await supabase.from('drawings').select('id, player_id, svg_data', {
+        eqs: [['match_id', matchId], ['round_number', round]],
+      });
 
       // Load player names
-      const { data: players } = await supabase
-        .from('match_players')
-        .select('user_id, display_name, is_bot')
-        .eq('match_id', matchId);
+      const { data: players } = await supabase.from('match_players').select('user_id, display_name, is_bot', {
+        eq: ['match_id', matchId],
+      });
 
       const playerMap: Record<string, { name: string; isBot: boolean }> = {};
       for (const p of (players || [])) {

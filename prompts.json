@@ -1,0 +1,984 @@
+{
+  "version": "1.0.0",
+  "totalPrompts": 240,
+  "metadata": {
+    "ageTarget": "8-13",
+    "tone": "playful, encouraging, never scary or competitive about skill",
+    "designPrinciple": "prompts should reward weird ideas over polished art",
+    "lastUpdated": "2026-05-08"
+  },
+  "sketchbooks": [
+    {
+      "id": "sb01",
+      "number": 1,
+      "title": "First Day Doodles",
+      "emoji": "🎨",
+      "theme": "Tutorial and onboarding. Bright primary colors, simple prompts, encouraging tone.",
+      "colorPalette": ["#FF6B6B","#FFD93D","#6BCB77","#4D96FF","#FF6BAE","#9D4EDD","#FFFFFF","#000000","#A0522D","#FFB6C1","#87CEEB","#FFA500","#90EE90","#DDA0DD","#F0E68C","#FF7F50"],
+      "magicStamp": "smiley_face",
+      "levels": [
+        {
+          "id": "L1",
+          "number": 1,
+          "title": "Just Try It",
+          "mode": "tutorial_solo",
+          "description": "Pip the Pencil walks the player through tools. No judging.",
+          "prompts": [
+            "Draw something that makes you happy",
+            "Draw your favorite color as a creature",
+            "Draw a sun with a personality",
+            "Draw a cloud with feelings",
+            "Draw your name as a character"
+          ]
+        },
+        {
+          "id": "L2",
+          "number": 2,
+          "title": "Bot Bash",
+          "mode": "vs_bots",
+          "description": "First competitive match against gentle bots.",
+          "prompts": [
+            "A happy sun",
+            "Your favorite food",
+            "A funny hat",
+            "An animal jumping",
+            "Something you'd find in a treasure chest",
+            "A house in the clouds",
+            "A balloon with a face",
+            "A flower that's having a great day",
+            "The world's biggest cookie",
+            "A fish wearing sunglasses"
+          ]
+        },
+        {
+          "id": "L3",
+          "number": 3,
+          "title": "Real Round",
+          "mode": "multiplayer_easy",
+          "description": "First match with real players.",
+          "prompts": [
+            "A robot waving hello",
+            "Your dream sandwich",
+            "A surprised potato",
+            "An umbrella protecting something silly",
+            "A tree wearing accessories",
+            "A boat made of food",
+            "The happiest cloud",
+            "A lamp that came to life",
+            "A pencil drawing itself",
+            "A book that's reading you back"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb02",
+      "number": 2,
+      "title": "Animal Antics",
+      "emoji": "🐰",
+      "theme": "All animals, all the time. Real and made-up.",
+      "colorPalette": ["#8B4513","#D2691E","#F5DEB3","#FFFFFF","#000000","#FFB6C1","#87CEEB","#90EE90","#FFD700","#FF6347","#9370DB","#20B2AA","#A0522D","#FFA07A","#98FB98","#DDA0DD"],
+      "magicStamp": "paw_print",
+      "levels": [
+        {
+          "id": "L4",
+          "number": 4,
+          "title": "Zoo Crew",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "A penguin on vacation",
+            "A giraffe trying to hide",
+            "A grumpy cat",
+            "An octopus learning to dance",
+            "A dog who just got the zoomies",
+            "A turtle in a hurry",
+            "An elephant in a tiny house",
+            "A flamingo doing yoga",
+            "A bear who lost its honey",
+            "A koala who can't sleep",
+            "A snake trying to wear pants",
+            "A rabbit racing a snail",
+            "A frog dressed up fancy",
+            "A panda eating something that isn't bamboo",
+            "A monkey being a librarian"
+          ]
+        },
+        {
+          "id": "L5",
+          "number": 5,
+          "title": "Made-Up Beasts",
+          "mode": "multiplayer_standard",
+          "description": "Combine-two-animals prompts. Judge rewards weird combos.",
+          "prompts": [
+            "Half shark, half bunny",
+            "An animal that lives in a volcano",
+            "A pet for a wizard",
+            "The world's smallest dragon",
+            "An animal that's afraid of vegetables",
+            "A creature made entirely of tails",
+            "A pet that glows in the dark",
+            "An animal that can only walk backwards",
+            "A creature that lives inside a cloud",
+            "Half cat, half kangaroo",
+            "A beast with too many legs",
+            "An animal that grew up in a library",
+            "A pet for a vampire (who's also vegan)",
+            "A creature that only comes out on Tuesdays",
+            "An animal made of musical instruments"
+          ]
+        },
+        {
+          "id": "L6",
+          "number": 6,
+          "title": "Pet Parade",
+          "mode": "multiplayer_continuity",
+          "description": "Round 1: design a pet. Round 2 prompt uses your pet from Round 1.",
+          "prompts": [
+            "Design your dream pet",
+            "Your pet's first day at school",
+            "Your pet trying to cook dinner",
+            "Your pet at the beach",
+            "Your pet meeting royalty",
+            "Your pet on a rainy day",
+            "Your pet's favorite hideout",
+            "Your pet getting a bath (and not loving it)",
+            "Your pet learning to skateboard",
+            "Your pet's birthday party"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb03",
+      "number": 3,
+      "title": "Food Fight",
+      "emoji": "🍕",
+      "theme": "Food becomes the canvas for personality.",
+      "colorPalette": ["#FF6347","#FFD700","#8B4513","#90EE90","#FF1493","#FFA500","#FF69B4","#9ACD32","#FFB6C1","#DC143C","#FFFAF0","#D2691E","#F4A460","#FFE4B5","#7FFF00","#FF4500"],
+      "magicStamp": "drip",
+      "levels": [
+        {
+          "id": "L7",
+          "number": 7,
+          "title": "Lunchbox Legends",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "A sandwich with too many ingredients",
+            "The world's spiciest pepper",
+            "A donut having the best day",
+            "Pizza that came alive",
+            "A vegetable convinced it's a superhero",
+            "A taco on a tightrope",
+            "Spaghetti escaping the plate",
+            "An apple that became famous",
+            "A cupcake with a secret",
+            "Cereal that's tired of milk",
+            "A banana wearing a tuxedo",
+            "Sushi going on an adventure",
+            "A pretzel doing yoga",
+            "An onion with too many feelings",
+            "A burger that built a fort"
+          ]
+        },
+        {
+          "id": "L8",
+          "number": 8,
+          "title": "Imaginary Restaurant",
+          "mode": "multiplayer_voted",
+          "prompts": [
+            "Dessert from another planet",
+            "Soup made of feelings",
+            "A snack only ghosts eat",
+            "Breakfast for someone who lives in a tree",
+            "A sandwich for a robot",
+            "Ice cream that talks back",
+            "A pancake that travels through time",
+            "Something served at a dragon's birthday",
+            "The only food a picky monster will eat",
+            "A salad designed by a wizard",
+            "A meal you could fit in your pocket",
+            "Food that makes you grow taller",
+            "A snack from the bottom of the ocean",
+            "Birthday cake for a 1000-year-old",
+            "A drink that makes you invisible"
+          ]
+        },
+        {
+          "id": "L9",
+          "number": 9,
+          "title": "Chef's Special",
+          "mode": "speed_round",
+          "description": "30-second rounds, 8 prompts in a row.",
+          "prompts": [
+            "A pizza topping that doesn't exist yet",
+            "A soup that's also a hat",
+            "A fruit nobody has heard of",
+            "A snack that bounces",
+            "A sour candy face",
+            "A dessert for tiny mice",
+            "Toast with a personality",
+            "A drink with too much foam",
+            "A meal that looks like a face",
+            "A vegetable in disguise",
+            "A noodle in trouble",
+            "A muffin's morning",
+            "Cheese with a job",
+            "A sandwich that won't sit still",
+            "A pickle's adventure"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb04",
+      "number": 4,
+      "title": "Hero HQ",
+      "emoji": "🦸",
+      "theme": "Invent superheroes and villains. Heavy character design focus.",
+      "colorPalette": ["#FF0000","#0000FF","#FFD700","#000000","#FFFFFF","#8B0000","#4682B4","#32CD32","#FF1493","#9400D3","#FF8C00","#C0C0C0","#FFB6C1","#00CED1","#FF6347","#7B68EE"],
+      "magicStamp": "cape",
+      "levels": [
+        {
+          "id": "L10",
+          "number": 10,
+          "title": "Origin Story",
+          "mode": "multiplayer_with_keywords",
+          "description": "After drawing, tap 3 keywords from a list to define your hero.",
+          "prompts": [
+            "A superhero whose power is being really good at naps",
+            "A villain who's not actually that bad",
+            "A sidekick who's secretly the smartest one",
+            "A hero from your neighborhood",
+            "A superhero powered by snacks",
+            "The world's clumsiest hero",
+            "A villain who just wants to be invited to things",
+            "A hero whose power only works on weekends",
+            "A superhero made of paper",
+            "A villain whose plan is too complicated",
+            "A hero who can talk to one specific animal",
+            "A villain who fights with kindness",
+            "A superhero who needs a nap mid-battle",
+            "A hero who has no idea they're a hero",
+            "A villain who used to be the hero's best friend"
+          ]
+        },
+        {
+          "id": "L11",
+          "number": 11,
+          "title": "Team Up",
+          "mode": "multiplayer_two_round_pairing",
+          "description": "Round 1: hero. Round 2: their nemesis. System pairs them.",
+          "prompts": [
+            "Round 1: Your hero. Round 2: The villain who knows their weakness",
+            "Round 1: A hero made of weather. Round 2: Their nemesis",
+            "Round 1: A tiny hero. Round 2: A giant villain",
+            "Round 1: A hero in fancy clothes. Round 2: A messy villain",
+            "Round 1: A hero from the future. Round 2: A villain from the past",
+            "Round 1: A friendly hero. Round 2: A grumpy villain",
+            "Round 1: An underwater hero. Round 2: A desert villain",
+            "Round 1: Hero with a silly name. Round 2: Villain with an even sillier name"
+          ]
+        },
+        {
+          "id": "L12",
+          "number": 12,
+          "title": "Saturday Morning Showdown",
+          "mode": "boss_collaborative",
+          "description": "Whole lobby teams up against a giant prompt-villain.",
+          "prompts": [
+            "Team up to defeat: The Homework Monster",
+            "Team up to defeat: The Boredom Beast",
+            "Team up to defeat: The Smelly Sock King",
+            "Team up to defeat: The Thunder Tantrum",
+            "Team up to defeat: Captain Cleanup-Avoider",
+            "Team up to defeat: The Vegetable Refuser",
+            "Team up to defeat: The Bedtime Bandit",
+            "Team up to defeat: The Lost Sock Goblin",
+            "Team up to defeat: The Loud Chewer",
+            "Team up to defeat: The Last-Slice-Stealer"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb05",
+      "number": 5,
+      "title": "Spooky-but-Silly",
+      "emoji": "👻",
+      "theme": "Cute Halloween. Never scary.",
+      "colorPalette": ["#4B0082","#8A2BE2","#FFFFFF","#000000","#FFA500","#7FFF00","#00FFFF","#FF1493","#9370DB","#F0E68C","#DDA0DD","#191970","#48D1CC","#FF69B4","#9ACD32","#E6E6FA"],
+      "magicStamp": "ghost",
+      "levels": [
+        {
+          "id": "L13",
+          "number": 13,
+          "title": "Ghosts with Jobs",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "A ghost who works at a pizza shop",
+            "A vampire who's afraid of garlic but loves it anyway",
+            "A monster under the bed who's lonely",
+            "A witch who's bad at spells",
+            "A skeleton who can't find their bones",
+            "A werewolf who really loves manicures",
+            "A ghost trying to scare a kitten (and failing)",
+            "A mummy who keeps unraveling",
+            "A vampire dentist",
+            "A friendly zombie at a picnic",
+            "A witch's first day of school",
+            "A ghost who's terrible at being invisible",
+            "A monster who collects friendship bracelets",
+            "A vampire's pet bat",
+            "A scarecrow who got hired as a teacher"
+          ]
+        },
+        {
+          "id": "L14",
+          "number": 14,
+          "title": "Haunted House Tour",
+          "mode": "multiplayer_collaborative_rooms",
+          "description": "Each player draws one room of a shared haunted house.",
+          "prompts": [
+            "Draw the haunted kitchen",
+            "Draw the haunted bedroom",
+            "Draw the haunted bathroom",
+            "Draw the haunted living room",
+            "Draw the haunted attic",
+            "Draw the haunted basement",
+            "Draw the haunted garden",
+            "Draw the haunted library"
+          ]
+        },
+        {
+          "id": "L15",
+          "number": 15,
+          "title": "Costume Contest",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "Your pet in a Halloween costume",
+            "A vegetable in disguise",
+            "The worst costume ever (that's secretly the best)",
+            "What a robot dresses up as",
+            "A baby dragon's first costume",
+            "A costume made entirely of pillows",
+            "What a ghost dresses up as for Halloween",
+            "A homemade costume gone wonderfully wrong",
+            "A costume only your grandma would understand",
+            "A costume you'd hide from",
+            "A spider trying to be a butterfly",
+            "A costume for someone who has 4 arms",
+            "What a fish wears on Halloween",
+            "A costume based on a feeling",
+            "A costume so good it's scary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb06",
+      "number": 6,
+      "title": "Around the World",
+      "emoji": "🌍",
+      "theme": "Cultural celebration done with care. Universal experiences.",
+      "colorPalette": ["#FF6B6B","#4ECDC4","#FFE66D","#95E1D3","#F38181","#AA96DA","#FCBAD3","#A8E6CF","#FFD93D","#6BCB77","#4D96FF","#FF6BAE","#FFA07A","#98D8C8","#F7DC6F","#BB8FCE"],
+      "magicStamp": "compass",
+      "levels": [
+        {
+          "id": "L16",
+          "number": 16,
+          "title": "Festival Fun",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "Invent a new holiday",
+            "A parade float for your favorite thing",
+            "A celebration on the moon",
+            "A festival where everyone wears their pajamas",
+            "A holiday for pets",
+            "A festival celebrating the color blue",
+            "A celebration that happens at midnight",
+            "A holiday that lasts only one minute",
+            "A festival for shy people",
+            "A celebration where everyone trades hats",
+            "A new birthday tradition",
+            "A festival held inside a giant cake",
+            "A holiday where everyone walks backwards",
+            "A celebration for rainy days",
+            "A festival where everyone speaks in songs"
+          ]
+        },
+        {
+          "id": "L17",
+          "number": 17,
+          "title": "Made-Up Maps",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "A map of an island where everything is upside down",
+            "Directions to a secret kid hideout",
+            "A treasure map for finding lost socks",
+            "A map of a town where animals are in charge",
+            "A map of inside a giant snow globe",
+            "A map of the inside of a piano",
+            "A map showing where dreams come from",
+            "A map of a city built on a turtle's back",
+            "A map of a school for invisible kids",
+            "A map of a forest where the trees move at night",
+            "A map of an underwater playground",
+            "A map of the cloud kingdom",
+            "A map of the tiniest country ever",
+            "A map of a place that only exists on Sundays",
+            "A map of your dream backyard"
+          ]
+        },
+        {
+          "id": "L18",
+          "number": 18,
+          "title": "World's Greatest",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "The world's tallest tower (made of weird stuff)",
+            "A new wonder of the world",
+            "The most comfortable chair ever invented",
+            "The world's loudest snack",
+            "The greatest playground ever built",
+            "The world's silliest statue",
+            "A bridge made of something unusual",
+            "The world's longest sandwich",
+            "The most beautiful trash can",
+            "The world's softest building",
+            "A monument to your favorite snack",
+            "The biggest pillow fort ever",
+            "The world's strangest fountain",
+            "The greatest tree house design",
+            "A statue celebrating laziness"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb07",
+      "number": 7,
+      "title": "Time Twist",
+      "emoji": "⏰",
+      "theme": "Past, future, and impossible times.",
+      "colorPalette": ["#A0522D","#D2691E","#C0C0C0","#FFD700","#4682B4","#9370DB","#000000","#FFFFFF","#FF6347","#48D1CC","#7B68EE","#F4A460","#20B2AA","#FF1493","#9ACD32","#DDA0DD"],
+      "magicStamp": "clock",
+      "levels": [
+        {
+          "id": "L19",
+          "number": 19,
+          "title": "Ancient Adventures",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "A dinosaur with a phone",
+            "Cave kid's first invention",
+            "What kids did for fun before video games",
+            "A pyramid being built (but with help)",
+            "A knight whose horse is a bicycle",
+            "An ancient kid's school project",
+            "A pharaoh's pet",
+            "Cave family movie night",
+            "A Viking who's actually really gentle",
+            "A dinosaur trying to use a fork",
+            "Ancient art class",
+            "A castle's silliest secret",
+            "Stone-age fashion show",
+            "A dinosaur's lunchbox",
+            "An ancient toy nobody understands today"
+          ]
+        },
+        {
+          "id": "L20",
+          "number": 20,
+          "title": "Future Feelings",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "School in the year 3000",
+            "A robot best friend",
+            "Transportation that doesn't exist yet",
+            "Food in space",
+            "What a future bedroom looks like",
+            "A pet from the year 5000",
+            "Future fashion gone too far",
+            "A robot that's really bad at its job",
+            "What homework looks like in the future",
+            "A future playground",
+            "A house that walks around",
+            "Future toys for tiny aliens",
+            "A vending machine from the future",
+            "What pizza looks like in 1000 years",
+            "Future glasses that show too much"
+          ]
+        },
+        {
+          "id": "L21",
+          "number": 21,
+          "title": "Time Mash",
+          "mode": "multiplayer_standard",
+          "description": "Two eras combined. Judge rewards combinations.",
+          "prompts": [
+            "A medieval knight using modern technology",
+            "A caveman in the future",
+            "A robot from ancient Egypt",
+            "A dinosaur with a smartphone",
+            "A Viking at a video game tournament",
+            "An astronaut at a medieval feast",
+            "A pharaoh with a hoverboard",
+            "A cowboy in a spaceship",
+            "A Roman gladiator at a coffee shop",
+            "A future kid visiting the Stone Age",
+            "A pirate on the moon",
+            "A samurai with rollerblades",
+            "An ancient queen with headphones",
+            "A robot pretending to be a knight",
+            "A wizard learning to use a tablet"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb08",
+      "number": 8,
+      "title": "Emotion Lab",
+      "emoji": "💛",
+      "theme": "Drawing feelings. Gentle social-emotional learning.",
+      "colorPalette": ["#FFD700","#FF69B4","#87CEEB","#FFA500","#90EE90","#9370DB","#FF6347","#48D1CC","#FFB6C1","#F0E68C","#DDA0DD","#FFA07A","#98FB98","#B0E0E6","#FF1493","#7FFFD4"],
+      "magicStamp": "heart",
+      "levels": [
+        {
+          "id": "L22",
+          "number": 22,
+          "title": "Feeling Faces",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "What 'excited' looks like as a creature",
+            "A monster made of giggles",
+            "What 'cozy' would be if it had a face",
+            "A creature made of curiosity",
+            "What 'embarrassed' looks like trying to hide",
+            "A monster called Hangry",
+            "What 'proud' looks like wearing a crown",
+            "A creature made of nervous energy",
+            "What 'silly' looks like dancing",
+            "A monster called Bored",
+            "What 'grateful' looks like as a tree",
+            "A creature that lives in the feeling 'surprised'",
+            "What 'calm' looks like sleeping",
+            "A creature made of laughter",
+            "What 'brave' looks like before being brave"
+          ]
+        },
+        {
+          "id": "L23",
+          "number": 23,
+          "title": "Feelings Have Houses",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "Where happiness lives",
+            "What worry's bedroom looks like",
+            "A house for big feelings",
+            "Where bravery sleeps at night",
+            "The cozy hideout where calm lives",
+            "Anger's gym",
+            "Joy's kitchen",
+            "Sadness's reading nook",
+            "A treehouse for new ideas",
+            "The hotel where dreams stay",
+            "Where forgotten thoughts go",
+            "A garden grown by patience",
+            "Where laughter has lunch",
+            "The library of memories",
+            "A boat for traveling thoughts"
+          ]
+        },
+        {
+          "id": "L24",
+          "number": 24,
+          "title": "Friendship Drawings",
+          "mode": "multiplayer_paired_collab",
+          "description": "Paired with a teammate. Both draw the same prompt.",
+          "prompts": [
+            "What our friendship looks like as an animal",
+            "A planet only friends can visit",
+            "A snack we'd invent together",
+            "A treehouse just for us",
+            "Our team's flag",
+            "A vehicle we'd build together",
+            "An adventure we'd go on",
+            "A creature only we know about",
+            "Our secret hideout",
+            "A song we'd write (drawn as a picture)",
+            "A monster only friendship can defeat",
+            "Our pet sidekick",
+            "A holiday we made up",
+            "What our laugh looks like together",
+            "A tiny world for two"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb09",
+      "number": 9,
+      "title": "Invention Junction",
+      "emoji": "🔧",
+      "theme": "Engineering brain meets creative brain. STEM-adjacent.",
+      "colorPalette": ["#C0C0C0","#FFD700","#FF6347","#4682B4","#000000","#FFFFFF","#FFA500","#32CD32","#FF1493","#9370DB","#48D1CC","#A0522D","#7B68EE","#FF4500","#20B2AA","#DAA520"],
+      "magicStamp": "gear",
+      "levels": [
+        {
+          "id": "L25",
+          "number": 25,
+          "title": "Useful-ish",
+          "mode": "multiplayer_with_labels",
+          "description": "Players add 3 labels from pre-approved word bank.",
+          "prompts": [
+            "A machine that makes mornings easier",
+            "An invention for people who hate vegetables",
+            "A device that finds lost things",
+            "A robot that does ONE specific weird task",
+            "A machine that wakes you up gently",
+            "A gadget for people who can't decide",
+            "A tool for finding the TV remote",
+            "An invention for shy people",
+            "A robot that's also a friend",
+            "A machine that makes homework fun",
+            "A device that translates pet sounds",
+            "A gadget for the world's pickiest eater",
+            "A robot that organizes your room (badly)",
+            "An invention that helps you remember stuff",
+            "A machine that fights boredom"
+          ]
+        },
+        {
+          "id": "L26",
+          "number": 26,
+          "title": "Solve This",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "Invent something for kids who can't reach high shelves",
+            "A way to walk a dog when it's raining",
+            "How to carry too many books at once",
+            "A solution for tangled headphones",
+            "An invention for never losing your pencil",
+            "A way to keep ice cream from melting too fast",
+            "A device for people who hate making their bed",
+            "An invention for shy kids meeting new people",
+            "A way to keep a sandwich fresh all day",
+            "A tool for reaching the back of your closet",
+            "An invention to help you wake up on time",
+            "A way to stop socks from disappearing",
+            "A device that helps with homework breaks",
+            "An invention for people who get bored on car rides",
+            "A solution for too many notifications"
+          ]
+        },
+        {
+          "id": "L27",
+          "number": 27,
+          "title": "Backwards Inventions",
+          "mode": "multiplayer_standard",
+          "prompts": [
+            "An invention that makes everything WORSE",
+            "A useless machine",
+            "A tool that does the opposite of what it should",
+            "A gadget no one would ever buy",
+            "An umbrella designed to soak you",
+            "A chair designed to be uncomfortable",
+            "A pencil that erases what you write",
+            "A clock that lies about the time",
+            "A backpack that loses things",
+            "A toothbrush that adds candy",
+            "A door that won't stay closed",
+            "A spoon that misses your mouth",
+            "A book with no pages",
+            "A flashlight that makes things darker",
+            "A robot whose only job is to nap"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb10",
+      "number": 10,
+      "title": "Story Studio",
+      "emoji": "📖",
+      "theme": "Sequential drawing. Multi-panel canvases.",
+      "colorPalette": ["#FFFFFF","#000000","#FFD700","#FF6347","#4682B4","#9370DB","#90EE90","#FF69B4","#FFA500","#48D1CC","#A0522D","#DDA0DD","#FFB6C1","#7B68EE","#FFA07A","#98FB98"],
+      "magicStamp": "speech_bubble",
+      "levels": [
+        {
+          "id": "L29",
+          "number": 29,
+          "title": "Before & After",
+          "mode": "multiplayer_two_panel",
+          "prompts": [
+            "Before and after eating too much candy",
+            "A plant before and after meeting a kid who waters it perfectly",
+            "Before and after the best day ever",
+            "Before and after meeting a new puppy",
+            "Before and after losing a tooth",
+            "Before and after summer vacation",
+            "Before and after getting really good at something",
+            "A monster before and after making a friend",
+            "Before and after a really long nap",
+            "A robot before and after learning to laugh",
+            "Before and after winning a prize",
+            "A messy room before and after cleaning",
+            "Before and after a haircut you didn't ask for",
+            "A snowman before and after sun comes out",
+            "Before and after meeting your hero"
+          ]
+        },
+        {
+          "id": "L30",
+          "number": 30,
+          "title": "Three-Panel Tales",
+          "mode": "multiplayer_three_panel",
+          "prompts": [
+            "Beginning, middle, end of a tiny adventure",
+            "How a snowman becomes friends with the sun",
+            "A day in the life of a sock",
+            "The journey of a paper airplane",
+            "A worm's first time at the surface",
+            "A leaf falling from a tree",
+            "How a robot learned to dance",
+            "The life of a single popcorn kernel",
+            "A pencil's last day before retirement",
+            "How a button got lost",
+            "A balloon's escape",
+            "The story of a forgotten umbrella",
+            "How a snail won a race",
+            "The journey of a single raindrop",
+            "How a shy kid made a friend"
+          ]
+        },
+        {
+          "id": "L31",
+          "number": 31,
+          "title": "Comic Creator",
+          "mode": "multiplayer_four_panel",
+          "description": "Four-panel comic, no words.",
+          "prompts": [
+            "A pet finding the perfect spot to nap",
+            "A robot trying to eat its first cookie",
+            "Two friends sharing one sandwich",
+            "A bird's first time flying",
+            "A monster trying to make breakfast",
+            "Someone losing and finding their hat",
+            "A cat catching a laser dot (or trying to)",
+            "An astronaut meeting an alien for the first time",
+            "A snowman wishing for a friend",
+            "A pizza's journey from oven to mouth",
+            "An ant solving a really big problem",
+            "A kid teaching a dog a trick",
+            "A library book having an adventure",
+            "A balloon trying to escape",
+            "A wizard's first spell going wrong then right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb11",
+      "number": 11,
+      "title": "Constraint Carnival",
+      "emoji": "🎪",
+      "theme": "Creative constraints.",
+      "colorPalette": ["#FF1493","#FFD700","#00CED1","#FF4500","#9400D3","#7FFF00","#FF69B4","#1E90FF","#FFA500","#32CD32","#FF6347","#9370DB","#FFB6C1","#48D1CC","#FFFF00","#DA70D6"],
+      "magicStamp": "lock",
+      "levels": [
+        {
+          "id": "L32",
+          "number": 32,
+          "title": "Limited Tools",
+          "mode": "multiplayer_constraint_color",
+          "prompts": [
+            "Draw a forest using only ONE color",
+            "Draw a face using only circles",
+            "Draw a city without lifting your finger (one continuous line)",
+            "Draw a pet using only the bucket fill tool",
+            "Draw a monster using only triangles",
+            "Draw a meal using only two colors",
+            "Draw a story using only stick figures",
+            "Draw a hero using only the chunkiest brush",
+            "Draw a vehicle using only squares",
+            "Draw a creature in only black and white",
+            "Draw a landscape with no straight lines",
+            "Draw an animal with no curves",
+            "Draw a feeling using only one shape",
+            "Draw a portrait with eyes closed (then open them halfway)",
+            "Draw a building using only the smallest brush"
+          ]
+        },
+        {
+          "id": "L33",
+          "number": 33,
+          "title": "Speed and Switch",
+          "mode": "multiplayer_constraint_time",
+          "prompts": [
+            "Draw with your eyes closed for 20 seconds, then open them",
+            "You only have 30 seconds instead of 60",
+            "Switch hands halfway through the drawing",
+            "Draw the whole thing in 15 seconds",
+            "Start drawing upside down, then flip the canvas",
+            "Draw the whole thing using only your thumb",
+            "First half: only blue. Second half: only red",
+            "First 10 seconds: just shapes. Then add details",
+            "Draw with one finger covering half the screen",
+            "First half super fast, second half super slow",
+            "Draw it tiny, then make it huge",
+            "Start from the corner and work outward",
+            "Only draw during the timer's odd-numbered seconds",
+            "Draw it as messy as possible, then clean it up",
+            "Stop and start every 5 seconds"
+          ]
+        },
+        {
+          "id": "L34",
+          "number": 34,
+          "title": "Weird Canvas",
+          "mode": "multiplayer_constraint_shape",
+          "prompts": [
+            "Your canvas is a triangle",
+            "Draw on a ridiculously narrow canvas",
+            "The canvas is round",
+            "The canvas is shaped like a star",
+            "Draw inside a tiny square",
+            "Draw on a super wide canvas",
+            "The canvas has a hole in the middle",
+            "Draw across two separate canvases",
+            "The canvas is shaped like a heart",
+            "Draw on a slanted canvas",
+            "The canvas is shaped like a cloud",
+            "Draw using only the corners",
+            "The canvas is a spiral",
+            "Draw on a canvas shaped like an animal",
+            "The canvas keeps changing size as you draw"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb12",
+      "number": 12,
+      "title": "All-Star Studio",
+      "emoji": "⭐",
+      "theme": "Endgame. Daily Doodle, themed weeks, tournaments.",
+      "colorPalette": ["#FFD700","#FF1493","#00CED1","#9400D3","#FF4500","#7FFF00","#FF69B4","#1E90FF","#FFA500","#32CD32","#FF6347","#9370DB","#FFB6C1","#48D1CC","#FFFFFF","#000000"],
+      "magicStamp": "star",
+      "levels": [
+        {
+          "id": "L35",
+          "number": 35,
+          "title": "Daily Doodle",
+          "mode": "daily_global",
+          "description": "One special prompt per day. Global leaderboard.",
+          "prompts": [
+            "A creature that only exists today",
+            "What today feels like",
+            "Something you've never drawn before",
+            "Your mood as a weather pattern",
+            "A tiny world inside a snow globe",
+            "An invention from your dream last night",
+            "What music looks like",
+            "A character you'd want as a friend",
+            "Something brave",
+            "A moment from a story that doesn't exist yet",
+            "Your imagination as a place",
+            "A creature only kids can see",
+            "What kindness looks like",
+            "Something nobody has ever made before",
+            "A version of yourself in a different world",
+            "An animal that lives where art comes from",
+            "Your favorite sound as a picture",
+            "Something that doesn't exist yet but should",
+            "A friend you haven't met yet",
+            "What 'today' would look like in 100 years",
+            "A pet for your future self",
+            "Something that makes you laugh just thinking about it",
+            "A character whose name is the first word that pops in your head",
+            "What 'cozy' tastes like",
+            "A door that leads somewhere magical",
+            "A creature that lives between dreams",
+            "Your superpower if you could pick today",
+            "A planet that runs on imagination",
+            "What your favorite song looks like",
+            "A version of you from another dimension"
+          ]
+        },
+        {
+          "id": "L36",
+          "number": 36,
+          "title": "Themed Weeks",
+          "mode": "themed_event",
+          "prompts": [
+            "Underwater Week: A creature from the deepest ocean",
+            "Underwater Week: A mermaid's pet",
+            "Underwater Week: A coral reef city",
+            "Robot Week: A robot that's also a chef",
+            "Robot Week: A robot's first emotion",
+            "Robot Week: A robot family",
+            "Space Week: An alien's lunchbox",
+            "Space Week: A planet made of one specific thing",
+            "Space Week: A spaceship powered by something silly",
+            "Tiny Week: The world's smallest dragon",
+            "Tiny Week: A city built inside a teacup",
+            "Tiny Week: The tiniest hero ever",
+            "Giant Week: The biggest pizza ever made",
+            "Giant Week: A giant's pet",
+            "Giant Week: A skyscraper-sized creature being gentle",
+            "Music Week: A creature made of musical notes",
+            "Music Week: A band of unlikely instruments",
+            "Music Week: What your favorite song looks like",
+            "Sport Week: A new sport nobody has invented yet",
+            "Sport Week: An animal Olympics",
+            "Sport Week: The strangest tournament ever"
+          ]
+        },
+        {
+          "id": "L37",
+          "number": 37,
+          "title": "Friend Tournaments",
+          "mode": "private_bracket",
+          "prompts": [
+            "Each round: design a champion for your team",
+            "Each round: a creature that only your team knows about",
+            "Each round: a flag that represents your team",
+            "Each round: a snack only your team eats",
+            "Each round: a hideout for your team",
+            "Each round: a vehicle only your team can drive",
+            "Each round: a cheer for your team (drawn as a picture)",
+            "Each round: a creature your team befriended"
+          ]
+        }
+      ]
+    }
+  ],
+  "promptDesignNotes": {
+    "voiceAndTone": "Every prompt should feel like a kind friend offering an idea, never a teacher giving an assignment. Use playful language. Avoid words that imply correctness ('correctly', 'properly', 'best').",
+    "rejectIfPromptCould": [
+      "Make a child feel their drawing is wrong",
+      "Reference brands, copyrighted characters, or real public figures",
+      "Touch on violence, weapons, scary content beyond cute-spooky",
+      "Reference body image, food restriction, or appearance judgment",
+      "Stereotype any culture, gender, ability, or family structure",
+      "Imply the existence of a 'correct' answer to draw"
+    ],
+    "rewardWeirdIdeas": "The AI judge should be calibrated such that an unusual interpretation of any prompt scores higher than a literal one. A 'pizza that came alive' that's just a pizza with a face = baseline; a pizza riding a unicycle while crying tears of marinara = top tier.",
+    "rotationStrategy": "Within a level, randomly pick 3-5 prompts per match from that level's prompt array. Daily Doodle picks 1 prompt globally for all players each day."
+  },
+  "approvedKeywordBankForLabels": {
+    "description": "Used in Sketchbook 9 Level 25 'Useful-ish' where players tap 3 keywords to label their invention. Pre-approved bank prevents free-text input.",
+    "categories": {
+      "personality": ["Brave","Sneaky","Friendly","Tired","Grumpy","Cheerful","Curious","Lazy","Smart","Silly","Calm","Bouncy","Shy","Bold","Kind","Wild"],
+      "powers": ["Stretchy","Glowing","Floating","Tiny","Huge","Fast","Slow","Bouncy","Squishy","Sticky","Slippery","Magnetic","Invisible","Loud","Quiet","Sparkly"],
+      "feelings": ["Excited","Cozy","Proud","Surprised","Hungry","Sleepy","Confused","Determined","Hopeful","Goofy","Peaceful","Eager","Worried","Thrilled","Patient","Playful"],
+      "appearance": ["Furry","Spiky","Smooth","Polka-dotted","Striped","Glittery","Rusty","Shiny","Soft","Bumpy","Round","Pointy","Fluffy","Crystal","Wooden","Metal"]
+    }
+  },
+  "judgePromptTemplate": {
+    "description": "Template for the AI judge's system prompt.",
+    "system": "You are the AI judge for Doodle Dash, a kids' drawing game. Score drawings on three axes: CREATIVITY (did they take the prompt somewhere unexpected?), MATCH (does the drawing relate to the prompt?), and PERSONALITY (does the drawing have charm, humor, or weirdness?). NEVER score on technical artistic skill. A confident stick figure with a great idea should beat a polished but boring drawing. Always give feedback that is warm and specific. Examples: 'Loved the surprise penguin!' 'The googly eyes made me laugh.' 'Bold choice with the colors!' NEVER say a drawing is bad, ugly, or wrong. If a drawing is hard to read, say 'I can see what you were going for here!' Score 1-100 each axis. Output JSON with: creativity_score, match_score, personality_score, total_score, feedback (one short warm sentence).",
+    "userTemplate": "Prompt was: {prompt}\nThe drawing is attached as an image. Score it and give kind, specific feedback."
+  }
+}

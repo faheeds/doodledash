@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView,
-  ScrollView, ActivityIndicator, Clipboard,
+  ScrollView, ActivityIndicator, Share,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
@@ -20,7 +20,7 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [starting, setStarting] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
   const unsubMatch = useRef<(() => void) | null>(null);
   const unsubPlayers = useRef<(() => void) | null>(null);
 
@@ -44,7 +44,8 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
   const toggleReady = async () => {
     const next = !isReady;
     setIsReady(next);
-    await supabase.from('match_players').update({ is_ready: next }).eq('match_id', matchId);
+    // Update only this player's ready state using match on both match_id and user_id
+    await supabase.from('match_players').update({ is_ready: next }).match({ match_id: matchId, user_id: userId });
   };
 
   const addBot = async () => {
@@ -62,10 +63,12 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
     await supabase.from('matches').update({ status: 'drawing', current_round: 1, current_prompt: prompt, total_rounds: 5 }).eq('id', matchId);
   };
 
-  const copyCode = () => {
-    Clipboard.setString(roomCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const shareCode = async () => {
+    try {
+      await Share.share({ message: `Join my Doodle Dash game! Room code: ${roomCode}` });
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    } catch {}
   };
 
   const allReady = players.length >= 2 && players.filter(p => !p.is_bot).every(p => p.is_ready);
@@ -76,8 +79,8 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
         <View style={styles.codeCard}>
           <Text style={styles.codeLabel}>ROOM CODE</Text>
           <Text style={styles.code}>{roomCode}</Text>
-          <TouchableOpacity style={styles.copyBtn} onPress={copyCode}>
-            <Text style={styles.copyText}>{copied ? '✅ Copied!' : '📋 Copy'}</Text>
+          <TouchableOpacity style={styles.copyBtn} onPress={shareCode}>
+            <Text style={styles.copyText}>{shared ? '✅ Shared!' : '📤 Share Code'}</Text>
           </TouchableOpacity>
           <Text style={styles.codeSub}>Share this with friends!</Text>
         </View>

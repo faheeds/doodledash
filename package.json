@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev:web": "cd apps/web && npm run dev",
-    "dev:mobile": "cd apps/mobile && npx expo start",
+    "dev:mobile": "npm start --prefix apps/mobile",
     "test": "echo \"No root tests\""
   }
 }

@@ -79,9 +79,22 @@ async function restFetch(path: string, init: RequestInit): Promise<any> {
 /** Minimal query builder */
 function from(table: string) {
   return {
-    async select(cols = '*', opts: { eq?: [string, any]; limit?: number; count?: boolean } = {}) {
+    async select(
+      cols = '*',
+      opts: {
+        eq?: [string, any];
+        eqs?: [string, any][];  // multiple equality filters
+        limit?: number;
+        count?: boolean;
+      } = {}
+    ) {
       let path = `/${table}?select=${cols}`;
       if (opts.eq) path += `&${opts.eq[0]}=eq.${opts.eq[1]}`;
+      if (opts.eqs) {
+        for (const [k, v] of opts.eqs) {
+          path += `&${k}=eq.${v}`;
+        }
+      }
       if (opts.limit) path += `&limit=${opts.limit}`;
       const headers: any = {};
       if (opts.count) headers['Prefer'] = 'count=exact';

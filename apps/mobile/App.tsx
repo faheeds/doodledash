@@ -25,27 +25,57 @@ export type RootStackParamList = {
   Draw: { prompt: string };
   Result: { prompt: string; entryId: string };
   Gallery: undefined;
+  // Multiplayer
   Lobby: undefined;
   WaitingRoom: {
-    matchId: string; roomCode: string; isHost: boolean; userId: string; username: string;
+    matchId: string;
+    roomCode: string;
+    isHost: boolean;
+    userId: string;
+    username: string;
   };
   MultiDraw: {
-    matchId: string; roomCode: string; userId: string; username: string;
-    prompt: string; round: number; totalRounds: number; isHost: boolean;
+    matchId: string;
+    roomCode: string;
+    userId: string;
+    username: string;
+    prompt: string;
+    round: number;
+    totalRounds: number;
+    isHost: boolean;
   };
   Reveal: {
-    matchId: string; roomCode: string; userId: string; username: string;
-    prompt: string; round: number; totalRounds: number; isHost: boolean;
+    matchId: string;
+    roomCode: string;
+    userId: string;
+    username: string;
+    prompt: string;
+    round: number;
+    totalRounds: number;
+    isHost: boolean;
   };
   Vote: {
-    matchId: string; roomCode: string; userId: string; username: string;
-    prompt: string; round: number; totalRounds: number; isHost: boolean;
+    matchId: string;
+    roomCode: string;
+    userId: string;
+    username: string;
+    prompt: string;
+    round: number;
+    totalRounds: number;
+    isHost: boolean;
     drawings: VoteDrawing[];
   };
   MultiResult: {
-    matchId: string; roomCode: string; userId: string; username: string;
-    prompt: string; round: number; totalRounds: number; isHost?: boolean;
-    drawings: VoteDrawing[]; votes: Record<string, string | null>;
+    matchId: string;
+    roomCode: string;
+    userId: string;
+    username: string;
+    prompt: string;
+    round: number;
+    totalRounds: number;
+    isHost?: boolean;
+    drawings: VoteDrawing[];
+    votes: Record<string, string | null>;
   };
 };
 
@@ -62,6 +92,7 @@ export default function App() {
         <Stack.Screen name="Draw" component={DrawScreen} options={{ gestureEnabled: false }} />
         <Stack.Screen name="Result" component={ResultScreen} options={{ gestureEnabled: false }} />
         <Stack.Screen name="Gallery" component={GalleryScreen} />
+        {/* Multiplayer */}
         <Stack.Screen name="Lobby" component={LobbyScreen} />
         <Stack.Screen name="WaitingRoom" component={WaitingRoomScreen} options={{ gestureEnabled: false }} />
         <Stack.Screen name="MultiDraw" component={MultiDrawScreen} options={{ gestureEnabled: false }} />
