@@ -131,6 +131,8 @@ function from(table: string) {
 
 export const supabase = { from };
 
+export function getAccessToken(): string | null { return _accessToken; }
+
 // ─── Realtime (polling-based) ─────────────────────────────────────────────────
 
 type ChangeCallback = (payload: { new: Row }) => void;

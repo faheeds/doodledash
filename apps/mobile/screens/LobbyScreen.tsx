@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
-import { ensureAnonSession, generateRoomCode } from '../utils/supabase';
+import { ensureAnonSession, generateRoomCode, getAccessToken } from '../utils/supabase';
 import { Storage } from '../utils/storage';
 import { COLORS } from '../constants/colors';
 
@@ -51,21 +51,22 @@ export default function LobbyScreen({ navigation }: Props) {
     try {
       const authId = await ensureAnonSession();
       if (!authId) throw new Error('Could not connect. Check internet.');
+      const token = getAccessToken();
       const username = (await Storage.getUsername()) || 'Player';
       const roomCode = generateRoomCode();
 
-      const userId = await getOrCreateUser(authId, username, null);
+      const userId = await getOrCreateUser(authId, username, token);
       if (!userId) throw new Error('Could not create user profile.');
 
       const { data: matchData } = await rest('/matches', 'POST', {
         room_code: roomCode, status: 'lobby', total_rounds: 5, host_user_id: userId,
-      }, null);
+      }, token);
       const match = Array.isArray(matchData) ? matchData[0] : matchData;
       if (!match?.id) throw new Error('Could not create room.');
 
       await rest('/match_players', 'POST', {
         match_id: match.id, user_id: userId, display_name: username, is_ready: false, is_bot: false,
-      }, null);
+      }, token);
 
       navigation.replace('WaitingRoom', { matchId: match.id, roomCode: match.room_code, isHost: true, userId, username });
     } catch (e: any) { setError(e.message || 'Something went wrong'); }
@@ -79,22 +80,23 @@ export default function LobbyScreen({ navigation }: Props) {
     try {
       const authId = await ensureAnonSession();
       if (!authId) throw new Error('Could not connect. Check internet.');
+      const token = getAccessToken();
       const username = (await Storage.getUsername()) || 'Player';
 
-      const { data: matches } = await rest(`/matches?room_code=eq.${code}&select=id,room_code,status`, 'GET', undefined, null);
+      const { data: matches } = await rest(`/matches?room_code=eq.${code}&select=id,room_code,status`, 'GET', undefined, token);
       const match = Array.isArray(matches) ? matches[0] : null;
       if (!match) throw new Error('Room not found. Check the code!');
       if (match.status !== 'lobby') throw new Error('That game already started!');
 
-      const { data: playerList } = await rest(`/match_players?match_id=eq.${match.id}&is_bot=eq.false&select=id`, 'GET', undefined, null);
+      const { data: playerList } = await rest(`/match_players?match_id=eq.${match.id}&is_bot=eq.false&select=id`, 'GET', undefined, token);
       if ((playerList?.length ?? 0) >= 8) throw new Error('That room is full!');
 
-      const userId = await getOrCreateUser(authId, username, null);
+      const userId = await getOrCreateUser(authId, username, token);
       if (!userId) throw new Error('Could not create user profile.');
 
       await rest('/match_players', 'POST', {
         match_id: match.id, user_id: userId, display_name: username, is_ready: false, is_bot: false,
-      }, null);
+      }, token);
 
       navigation.replace('WaitingRoom', { matchId: match.id, roomCode: match.room_code, isHost: false, userId, username });
     } catch (e: any) { setError(e.message || 'Something went wrong'); }
