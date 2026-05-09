@@ -1,25 +1,14 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { View, StyleSheet, LayoutChangeEvent } from 'react-native';
-import {
-  Canvas,
-  Path,
-  SkPath,
-  Skia,
-  TouchInfo,
-  useTouchHandler,
-  useCanvasRef,
-  Fill,
-  Circle,
-  Group,
-} from '@shopify/react-native-skia';
-import { BRUSH_SIZES } from '../../constants/colors';
+import React, { useRef, useState, useCallback } from 'react';
+import { View, PanResponder, StyleSheet, LayoutChangeEvent } from 'react-native';
+import Svg, { Path, Rect } from 'react-native-svg';
 
 export type Stroke = {
   id: string;
-  path: SkPath;
+  points: string;   // SVG path data: "M x y L x y L x y ..."
   color: string;
   size: number;
   isFill?: boolean;
+  fillColor?: string;
 };
 
 type Props = {
@@ -33,108 +22,83 @@ type Props = {
 };
 
 export default function DrawingCanvas({
-  color,
-  brushSize,
-  tool,
-  strokes,
-  onStrokesChange,
-  onNewStroke,
-  backgroundColor = '#FFFFFF',
+  color, brushSize, tool, strokes, onStrokesChange, onNewStroke, backgroundColor = '#FFFFFF',
 }: Props) {
-  const canvasRef = useCanvasRef();
-  const currentPath = useRef<SkPath | null>(null);
-  const currentStrokeId = useRef<string>('');
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const currentPoints = useRef<{ x: number; y: number }[]>([]);
+  const currentId = useRef('');
+  const [size, setSize] = useState({ width: 0, height: 0 });
 
-  const onLayout = (e: LayoutChangeEvent) => {
-    setDimensions({
-      width: e.nativeEvent.layout.width,
-      height: e.nativeEvent.layout.height,
-    });
+  const buildPath = (pts: { x: number; y: number }[]) => {
+    if (pts.length === 0) return '';
+    return pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
   };
 
-  // Flood-fill implementation (simplified scanline for canvas)
-  const handleFill = useCallback(
-    (x: number, y: number) => {
-      const fillStroke: Stroke = {
-        id: Date.now().toString(),
-        path: Skia.Path.Make(),
-        color,
-        size: 1,
-        isFill: true,
-      };
-      // We represent a fill as a full-canvas rect path with the chosen color
-      fillStroke.path.addRect(
-        Skia.XYWHRect(0, 0, dimensions.width, dimensions.height)
-      );
-      onNewStroke(fillStroke);
-    },
-    [color, dimensions, onNewStroke]
-  );
-
-  const touchHandler = useTouchHandler({
-    onStart: (touch: TouchInfo) => {
-      if (tool === 'fill') {
-        handleFill(touch.x, touch.y);
-        return;
-      }
-      const path = Skia.Path.Make();
-      path.moveTo(touch.x, touch.y);
-      currentPath.current = path;
-      currentStrokeId.current = Date.now().toString();
-    },
-    onActive: (touch: TouchInfo) => {
-      if (!currentPath.current || tool === 'fill') return;
-      currentPath.current.lineTo(touch.x, touch.y);
-      // Force re-render by updating strokes with in-progress path
-      onStrokesChange([
-        ...strokes.filter((s) => s.id !== currentStrokeId.current),
-        {
-          id: currentStrokeId.current,
-          path: currentPath.current.copy(),
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        const { locationX, locationY } = evt.nativeEvent;
+        if (tool === 'fill') {
+          onNewStroke({ id: Date.now().toString(), points: '', color, size: 1, isFill: true, fillColor: color });
+          return;
+        }
+        currentId.current = Date.now().toString();
+        currentPoints.current = [{ x: locationX, y: locationY }];
+      },
+      onPanResponderMove: (evt) => {
+        if (tool === 'fill') return;
+        const { locationX, locationY } = evt.nativeEvent;
+        currentPoints.current.push({ x: locationX, y: locationY });
+        const inProgress: Stroke = {
+          id: currentId.current,
+          points: buildPath(currentPoints.current),
           color: tool === 'eraser' ? backgroundColor : color,
           size: brushSize,
-        },
-      ]);
-    },
-    onEnd: () => {
-      if (!currentPath.current || tool === 'fill') return;
-      const finished: Stroke = {
-        id: currentStrokeId.current,
-        path: currentPath.current.copy(),
-        color: tool === 'eraser' ? backgroundColor : color,
-        size: brushSize,
-      };
-      onNewStroke(finished);
-      currentPath.current = null;
-    },
-  });
+        };
+        onStrokesChange([...strokes.filter(s => s.id !== currentId.current), inProgress]);
+      },
+      onPanResponderRelease: () => {
+        if (tool === 'fill' || currentPoints.current.length === 0) return;
+        onNewStroke({
+          id: currentId.current,
+          points: buildPath(currentPoints.current),
+          color: tool === 'eraser' ? backgroundColor : color,
+          size: brushSize,
+        });
+        currentPoints.current = [];
+      },
+    })
+  ).current;
+
+  const onLayout = (e: LayoutChangeEvent) =>
+    setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height });
+
+  // Find the last fill stroke to use as background
+  const lastFill = [...strokes].reverse().find(s => s.isFill);
+  const bgColor = lastFill ? lastFill.fillColor! : backgroundColor;
+  const drawStrokes = strokes.filter(s => !s.isFill);
 
   return (
-    <View style={styles.container} onLayout={onLayout}>
-      <Canvas ref={canvasRef} style={styles.canvas} onTouch={touchHandler}>
-        <Fill color={backgroundColor} />
-        {strokes.map((stroke) =>
-          stroke.isFill ? (
-            <Fill key={stroke.id} color={stroke.color} />
-          ) : (
-            <Path
-              key={stroke.id}
-              path={stroke.path}
-              color={stroke.color}
-              style="stroke"
-              strokeWidth={stroke.size}
-              strokeCap="round"
-              strokeJoin="round"
-            />
-          )
-        )}
-      </Canvas>
+    <View style={styles.container} onLayout={onLayout} {...panResponder.panHandlers}>
+      <Svg width={size.width} height={size.height} style={StyleSheet.absoluteFill}>
+        <Rect x={0} y={0} width={size.width} height={size.height} fill={bgColor} />
+        {drawStrokes.map(stroke => (
+          <Path
+            key={stroke.id}
+            d={stroke.points}
+            stroke={stroke.color}
+            strokeWidth={stroke.size}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        ))}
+      </Svg>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, borderRadius: 12, overflow: 'hidden' },
-  canvas: { flex: 1 },
+  container: { flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: '#fff' },
 });

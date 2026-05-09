@@ -9,9 +9,8 @@ export function useDrawing() {
   const historyIdx = useRef(0);
 
   const addStroke = useCallback((stroke: Stroke) => {
-    setStrokes((prev) => {
-      const next = [...prev.filter((s) => s.id !== stroke.id), stroke];
-      // Save snapshot for undo (keep last MAX_UNDO)
+    setStrokes(prev => {
+      const next = [...prev.filter(s => s.id !== stroke.id), stroke];
       const snapshots = history.current.slice(0, historyIdx.current + 1);
       if (snapshots.length >= MAX_UNDO + 1) snapshots.shift();
       snapshots.push(next);
@@ -26,8 +25,7 @@ export function useDrawing() {
   const undo = useCallback(() => {
     if (historyIdx.current <= 0) return;
     historyIdx.current -= 1;
-    const prev = history.current[historyIdx.current];
-    setStrokes(prev);
+    setStrokes(history.current[historyIdx.current]);
   }, []);
 
   const clearCanvas = useCallback(() => {
@@ -36,7 +34,5 @@ export function useDrawing() {
     historyIdx.current = 0;
   }, []);
 
-  const canUndo = historyIdx.current > 0;
-
-  return { strokes, addStroke, updateStrokes, undo, clearCanvas, canUndo };
+  return { strokes, addStroke, updateStrokes, undo, clearCanvas, canUndo: historyIdx.current > 0 };
 }
