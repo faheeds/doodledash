@@ -125,6 +125,19 @@ function from(table: string) {
         },
       };
     },
+    delete() {
+      return {
+        async eq(col: string, val: any) {
+          const data = await restFetch(`/${table}?${col}=eq.${val}`, { method: 'DELETE', headers: { Prefer: '' } });
+          return { data, error: null };
+        },
+        async match(filters: Row) {
+          const qs = Object.entries(filters).map(([k, v]) => `${k}=eq.${v}`).join('&');
+          const data = await restFetch(`/${table}?${qs}`, { method: 'DELETE', headers: { Prefer: '' } });
+          return { data, error: null };
+        },
+      };
+    },
     single() { return this; },
   };
 }

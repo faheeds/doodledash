@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView,
-  ScrollView, ActivityIndicator, Share,
+  ScrollView, ActivityIndicator, Share, Alert, BackHandler,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
@@ -29,6 +29,34 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
     if (data) setPlayers(data as Player[]);
   };
 
+  const leaveGame = () => {
+    Alert.alert(
+      'Leave Game?',
+      isHost ? 'Leaving will cancel the room for everyone.' : 'Are you sure you want to leave?',
+      [
+        { text: 'Stay', style: 'cancel' },
+        {
+          text: 'Leave', style: 'destructive',
+          onPress: async () => {
+            unsubMatch.current?.();
+            unsubPlayers.current?.();
+            // Remove this player from the room
+            try {
+              await supabase.from('match_players').delete().match({ match_id: matchId, user_id: userId });
+            } catch {}
+            // If host, cancel the match entirely so other players get booted
+            if (isHost) {
+              try {
+                await supabase.from('matches').update({ status: 'cancelled' }).eq('id', matchId);
+              } catch {}
+            }
+            navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+          },
+        },
+      ]
+    );
+  };
+
   useEffect(() => {
     loadPlayers();
     unsubMatch.current = subscribeToMatch(matchId, (payload) => {
@@ -36,9 +64,19 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
       if (match.status === 'drawing') {
         navigation.replace('MultiDraw', { matchId, roomCode, userId, username, prompt: match.current_prompt, round: match.current_round, totalRounds: match.total_rounds, isHost });
       }
+      if (match.status === 'cancelled') {
+        Alert.alert('Room Closed', 'The host has left the game.', [{ text: 'OK' }]);
+        navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      }
     });
     unsubPlayers.current = subscribeToPlayers(matchId, loadPlayers);
-    return () => { unsubMatch.current?.(); unsubPlayers.current?.(); };
+
+    // Android back button
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      leaveGame();
+      return true; // prevent default back
+    });
+    return () => { unsubMatch.current?.(); unsubPlayers.current?.(); backHandler.remove(); };
   }, []);
 
   const toggleReady = async () => {
@@ -76,6 +114,12 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
+        <View style={styles.topBar}>
+          <Text style={styles.screenTitle}>Waiting Room</Text>
+          <TouchableOpacity style={styles.leaveBtn} onPress={leaveGame}>
+            <Text style={styles.leaveBtnText}>✕ Leave</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.codeCard}>
           <Text style={styles.codeLabel}>ROOM CODE</Text>
           <Text style={styles.code}>{roomCode}</Text>
@@ -126,6 +170,10 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.background },
   container: { flex: 1, padding: 16 },
+  topBar: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  screenTitle: { flex: 1, fontSize: 20, fontWeight: '900', color: COLORS.text },
+  leaveBtn: { backgroundColor: '#FEE2E2', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
+  leaveBtnText: { color: '#DC2626', fontWeight: '700', fontSize: 14 },
   codeCard: { backgroundColor: COLORS.primary, borderRadius: 20, padding: 20, alignItems: 'center', marginBottom: 16 },
   codeLabel: { fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: '600', letterSpacing: 1 },
   code: { fontSize: 44, fontWeight: '900', color: '#fff', letterSpacing: 8, marginVertical: 4 },
