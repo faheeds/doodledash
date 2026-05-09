@@ -1,5 +1,5 @@
 // Sketchbook 1: First Day Doodles — 30 starter prompts
-export const SKETCHBOOK_1_PROMPTS = [
+export const PROMPTS = [
   "A cat wearing a hat",
   "Your dream breakfast",
   "A cloud with a face",
@@ -32,8 +32,11 @@ export const SKETCHBOOK_1_PROMPTS = [
   "A cow jumping over a skyscraper",
 ];
 
+// Alias for backward compat
+export const SKETCHBOOK_1_PROMPTS = PROMPTS;
+
 export function getRandomPrompt(): string {
-  return SKETCHBOOK_1_PROMPTS[Math.floor(Math.random() * SKETCHBOOK_1_PROMPTS.length)];
+  return PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
 }
 
 export function getDailyPrompt(): string {
