@@ -1,0 +1,10 @@
+{
+  "name": "doodle-dash",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:mobile": "cd apps/mobile && npx expo start",
+    "test": "npm run test --workspaces --if-present"
+  }
+}
