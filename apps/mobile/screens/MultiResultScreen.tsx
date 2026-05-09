@@ -21,20 +21,48 @@ export default function MultiResultScreen({ navigation, route }: Props) {
   const [nextMatchState, setNextMatchState] = useState<any>(null);
   const isLastRound = round >= totalRounds;
 
+  // Deterministic hash for bot vote synthesis
+  const hashStr = (s: string) => s.split('').reduce((h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0, 0) >>> 0;
+
   useEffect(() => {
     const load = async () => {
+      // Real human votes
       const { data: voteRows } = await supabase.from('votes').select('drawing_id,category', { eq: ['match_id', matchId] });
+
+      // Bot players — each one synthesises votes deterministically (no DB entry needed)
+      const { data: bots } = await supabase.from('match_players').select('display_name', {
+        eqs: [['match_id', matchId], ['is_bot', true]],
+      });
 
       const map: Record<string, VoteTally> = {};
       for (const d of drawings) {
         map[d.id] = { drawing_id: d.id, display_name: d.display_name, svg_data: d.svg_data, most_creative: 0, funniest: 0, best_match: 0, total: 0 };
       }
+
+      // Tally real votes
       for (const v of (voteRows || [])) {
         if (map[v.drawing_id]) {
           (map[v.drawing_id] as any)[v.category]++;
           map[v.drawing_id].total++;
         }
       }
+
+      // Synthesise bot votes — each bot casts one vote per category
+      // The pick is seeded so it's identical on every client: same matchId + round + bot + category → same drawing
+      const categories = ['most_creative', 'funniest', 'best_match'];
+      for (const bot of (bots || [])) {
+        for (const cat of categories) {
+          const votable = drawings.filter(d => d.display_name !== bot.display_name);
+          if (votable.length === 0) continue;
+          const seed = hashStr(`${matchId}-${round}-${bot.display_name}-${cat}`);
+          const pick = votable[seed % votable.length];
+          if (map[pick.id]) {
+            (map[pick.id] as any)[cat]++;
+            map[pick.id].total++;
+          }
+        }
+      }
+
       setTallies(Object.values(map).sort((a, b) => b.total - a.total));
       setLoading(false);
     };

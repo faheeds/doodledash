@@ -21,6 +21,7 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
   const [isReady, setIsReady] = useState(false);
   const [starting, setStarting] = useState(false);
   const [shared, setShared] = useState(false);
+  const [selectedRounds, setSelectedRounds] = useState(3);
   const unsubMatch = useRef<(() => void) | null>(null);
   const unsubPlayers = useRef<(() => void) | null>(null);
 
@@ -44,10 +45,10 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
             try {
               await supabase.from('match_players').delete().match({ match_id: matchId, user_id: userId });
             } catch {}
-            // If host, cancel the match entirely so other players get booted
+            // If host, mark match finished so other polling players know to leave
             if (isHost) {
               try {
-                await supabase.from('matches').update({ status: 'cancelled' }).eq('id', matchId);
+                await supabase.from('matches').update({ status: 'finished' }).eq('id', matchId);
               } catch {}
             }
             navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
@@ -64,8 +65,9 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
       if (match.status === 'drawing') {
         navigation.replace('MultiDraw', { matchId, roomCode, userId, username, prompt: match.current_prompt, round: match.current_round, totalRounds: match.total_rounds, isHost });
       }
-      if (match.status === 'cancelled') {
-        Alert.alert('Room Closed', 'The host has left the game.', [{ text: 'OK' }]);
+      if (match.status === 'finished') {
+        // Only show this if WE are still in the waiting room (host left before game started)
+        Alert.alert('Room Closed', 'The host has left the room.', [{ text: 'OK' }]);
         navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
       }
     });
@@ -98,7 +100,7 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
     if (players.length < 2) return;
     setStarting(true);
     const prompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
-    await supabase.from('matches').update({ status: 'drawing', current_round: 1, current_prompt: prompt, total_rounds: 5 }).eq('id', matchId);
+    await supabase.from('matches').update({ status: 'drawing', current_round: 1, current_prompt: prompt, total_rounds: selectedRounds }).eq('id', matchId);
   };
 
   const shareCode = async () => {
@@ -156,6 +158,17 @@ export default function WaitingRoomScreen({ navigation, route }: Props) {
               <TouchableOpacity style={styles.botBtn} onPress={addBot}>
                 <Text style={styles.botBtnText}>+ Add Bot 🤖</Text>
               </TouchableOpacity>
+              <View style={styles.roundRow}>
+                <Text style={styles.roundLabel2}>Rounds:</Text>
+                {[1, 3, 5, 7, 10].map(n => (
+                  <TouchableOpacity
+                    key={n}
+                    style={[styles.roundBtn, selectedRounds === n && styles.roundBtnActive]}
+                    onPress={() => setSelectedRounds(n)}>
+                    <Text style={[styles.roundBtnText, selectedRounds === n && styles.roundBtnTextActive]}>{n}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
               <TouchableOpacity style={[styles.startBtn, !allReady && players.length >= 2 && styles.startBtnWarning]} onPress={handleStart} disabled={starting || players.length < 2}>
                 {starting ? <ActivityIndicator color="#fff" /> : <Text style={styles.startBtnText}>{allReady ? '🚀 Start Game!' : players.length >= 2 ? '▶ Start Anyway' : 'Need 2+ players'}</Text>}
               </TouchableOpacity>
@@ -194,6 +207,12 @@ const styles = StyleSheet.create({
   readyBtnText: { fontSize: 17, fontWeight: '800', color: '#fff' },
   botBtn: { backgroundColor: '#F3F4F6', borderRadius: 20, paddingVertical: 12, alignItems: 'center', borderWidth: 2, borderColor: '#E5E7EB' },
   botBtnText: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  roundRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  roundLabel2: { fontSize: 14, fontWeight: '700', color: COLORS.textLight, marginRight: 4 },
+  roundBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 12, paddingVertical: 10, alignItems: 'center', borderWidth: 2, borderColor: 'transparent' },
+  roundBtnActive: { backgroundColor: COLORS.primary + '18', borderColor: COLORS.primary },
+  roundBtnText: { fontSize: 16, fontWeight: '700', color: COLORS.textLight },
+  roundBtnTextActive: { color: COLORS.primary },
   startBtn: { backgroundColor: COLORS.primary, borderRadius: 20, paddingVertical: 16, alignItems: 'center' },
   startBtnWarning: { backgroundColor: '#F59E0B' },
   startBtnText: { fontSize: 18, fontWeight: '900', color: '#fff' },

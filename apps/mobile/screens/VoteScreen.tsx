@@ -39,27 +39,34 @@ export default function VoteScreen({ navigation, route }: Props) {
 
   const submitVotes = async () => {
     setSubmitting(true);
+
+    // Submit human player's votes
     for (const cat of CATEGORIES) {
       if (votes[cat.key]) {
-        await supabase.from('votes').upsert({
-          match_id: matchId,
-          voter_id: userId,
-          drawing_id: votes[cat.key],
-          round_number: round,
-          category: cat.key,
-        }, { onConflict: 'match_id,voter_id,category,round_number' });
+        try {
+          await supabase.from('votes').upsert({
+            match_id: matchId,
+            voter_id: userId,
+            drawing_id: votes[cat.key],
+            round_number: round,
+            category: cat.key,
+          }, { onConflict: 'match_id,voter_id,category,round_number' });
+        } catch {}
       }
     }
 
-    // Collect all votes for this round, then navigate to results
-    // (Wait a moment for others to submit, then host moves to results)
     if (isHost) {
-      await new Promise(r => setTimeout(r, 2000));
-      await supabase.from('matches').update({
-        status: round < totalRounds ? 'drawing' : 'finished',
-        current_round: round < totalRounds ? round + 1 : round,
-        current_prompt: round < totalRounds ? pickNextPrompt() : null,
-      }).eq('id', matchId);
+      // Bot votes are synthesised deterministically in MultiResultScreen
+      // (votes.voter_id FKs to users(id) — bots have no users row, so we skip DB insert)
+
+      // Advance round or finish match
+      try {
+        await supabase.from('matches').update({
+          status: round < totalRounds ? 'drawing' : 'finished',
+          current_round: round < totalRounds ? round + 1 : round,
+          current_prompt: round < totalRounds ? pickNextPrompt() : null,
+        }).eq('id', matchId);
+      } catch {}
     }
 
     navigation.replace('MultiResult', {
