@@ -1,10 +1,10 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { View, PanResponder, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 
 export type Stroke = {
   id: string;
-  points: string;   // SVG path data: "M x y L x y L x y ..."
+  points: string;
   color: string;
   size: number;
   isFill?: boolean;
@@ -24,9 +24,27 @@ type Props = {
 export default function DrawingCanvas({
   color, brushSize, tool, strokes, onStrokesChange, onNewStroke, backgroundColor = '#FFFFFF',
 }: Props) {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  // Refs so PanResponder always sees latest values — fixes stale closure bugs
+  const colorRef = useRef(color);
+  const brushSizeRef = useRef(brushSize);
+  const toolRef = useRef(tool);
+  const strokesRef = useRef(strokes);
+  const bgRef = useRef(backgroundColor);
+  const onNewStrokeRef = useRef(onNewStroke);
+  const onStrokesChangeRef = useRef(onStrokesChange);
+
+  useEffect(() => { colorRef.current = color; }, [color]);
+  useEffect(() => { brushSizeRef.current = brushSize; }, [brushSize]);
+  useEffect(() => { toolRef.current = tool; }, [tool]);
+  useEffect(() => { strokesRef.current = strokes; }, [strokes]);
+  useEffect(() => { bgRef.current = backgroundColor; }, [backgroundColor]);
+  useEffect(() => { onNewStrokeRef.current = onNewStroke; }, [onNewStroke]);
+  useEffect(() => { onStrokesChangeRef.current = onStrokesChange; }, [onStrokesChange]);
+
   const currentPoints = useRef<{ x: number; y: number }[]>([]);
   const currentId = useRef('');
-  const [size, setSize] = useState({ width: 0, height: 0 });
 
   const buildPath = (pts: { x: number; y: number }[]) => {
     if (pts.length === 0) return '';
@@ -37,35 +55,48 @@ export default function DrawingCanvas({
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
+
       onPanResponderGrant: (evt) => {
         const { locationX, locationY } = evt.nativeEvent;
-        if (tool === 'fill') {
-          onNewStroke({ id: Date.now().toString(), points: '', color, size: 1, isFill: true, fillColor: color });
+        if (toolRef.current === 'fill') {
+          onNewStrokeRef.current({
+            id: Date.now().toString(), points: '',
+            color: colorRef.current, size: 1,
+            isFill: true, fillColor: colorRef.current,
+          });
           return;
         }
         currentId.current = Date.now().toString();
         currentPoints.current = [{ x: locationX, y: locationY }];
       },
+
       onPanResponderMove: (evt) => {
-        if (tool === 'fill') return;
+        if (toolRef.current === 'fill') return;
         const { locationX, locationY } = evt.nativeEvent;
         currentPoints.current.push({ x: locationX, y: locationY });
         const inProgress: Stroke = {
           id: currentId.current,
           points: buildPath(currentPoints.current),
-          color: tool === 'eraser' ? backgroundColor : color,
-          size: brushSize,
+          color: toolRef.current === 'eraser' ? bgRef.current : colorRef.current,
+          size: brushSizeRef.current,
         };
-        onStrokesChange([...strokes.filter(s => s.id !== currentId.current), inProgress]);
+        // Use ref to get latest strokes — avoids wiping previous strokes
+        const updated = [
+          ...strokesRef.current.filter(s => s.id !== currentId.current),
+          inProgress,
+        ];
+        onStrokesChangeRef.current(updated);
       },
+
       onPanResponderRelease: () => {
-        if (tool === 'fill' || currentPoints.current.length === 0) return;
-        onNewStroke({
+        if (toolRef.current === 'fill' || currentPoints.current.length === 0) return;
+        const finished: Stroke = {
           id: currentId.current,
           points: buildPath(currentPoints.current),
-          color: tool === 'eraser' ? backgroundColor : color,
-          size: brushSize,
-        });
+          color: toolRef.current === 'eraser' ? bgRef.current : colorRef.current,
+          size: brushSizeRef.current,
+        };
+        onNewStrokeRef.current(finished);
         currentPoints.current = [];
       },
     })
@@ -74,7 +105,6 @@ export default function DrawingCanvas({
   const onLayout = (e: LayoutChangeEvent) =>
     setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height });
 
-  // Find the last fill stroke to use as background
   const lastFill = [...strokes].reverse().find(s => s.isFill);
   const bgColor = lastFill ? lastFill.fillColor! : backgroundColor;
   const drawStrokes = strokes.filter(s => !s.isFill);
