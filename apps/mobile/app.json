@@ -13,27 +13,11 @@
       "resizeMode": "contain",
       "backgroundColor": "#f97316"
     },
-    "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "com.doodledash.app"
-    },
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.doodledash.app" },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#f97316"
-      },
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#f97316" },
       "package": "com.doodledash.app"
     },
-    "plugins": [
-      "expo-router",
-      "expo-font",
-      [
-        "expo-media-library",
-        { "photosPermission": "Allow Doodle Dash to save your drawings." }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+    "plugins": ["expo-font"]
   }
 }

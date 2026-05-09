@@ -1,73 +1,39 @@
+import 'react-native-gesture-handler';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+
+import HomeScreen from './screens/HomeScreen';
+import TutorialScreen from './screens/TutorialScreen';
+import PlayScreen from './screens/PlayScreen';
+import DrawScreen from './screens/DrawScreen';
+import ResultScreen from './screens/ResultScreen';
+import GalleryScreen from './screens/GalleryScreen';
+
+export type RootStackParamList = {
+  Home: undefined;
+  Tutorial: undefined;
+  Play: undefined;
+  Draw: { prompt: string };
+  Result: { prompt: string };
+  Gallery: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-
-      <Text style={styles.emoji}>🎨</Text>
-      <Text style={styles.title}>Doodle Dash</Text>
-      <Text style={styles.subtitle}>The drawing game for kids!</Text>
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>🚀 Coming Soon</Text>
-        <Text style={styles.cardText}>The game is being built.</Text>
-        <Text style={styles.cardText}>Get ready to draw!</Text>
-      </View>
-
-      <View style={styles.iconRow}>
-        <Text style={styles.icon}>✏️</Text>
-        <Text style={styles.icon}>🏆</Text>
-        <Text style={styles.icon}>⭐</Text>
-        <Text style={styles.icon}>🎉</Text>
-      </View>
-    </View>
+    <NavigationContainer>
+      <StatusBar style="auto" />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Tutorial" component={TutorialScreen} options={{ gestureEnabled: false }} />
+        <Stack.Screen name="Play" component={PlayScreen} />
+        <Stack.Screen name="Draw" component={DrawScreen} options={{ gestureEnabled: false }} />
+        <Stack.Screen name="Result" component={ResultScreen} options={{ gestureEnabled: false }} />
+        <Stack.Screen name="Gallery" component={GalleryScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f97316',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  emoji: { fontSize: 72, marginBottom: 12 },
-  title: {
-    fontSize: 42,
-    fontWeight: '900',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.4)',
-    marginBottom: 32,
-    width: '100%',
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-  },
-  iconRow: { flexDirection: 'row', gap: 16 },
-  icon: { fontSize: 36 },
-});

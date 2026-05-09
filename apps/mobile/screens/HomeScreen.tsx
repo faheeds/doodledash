@@ -1,39 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ActivityIndicator,
-} from 'react-native';
-import { router } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../App';
 import { Storage } from '../utils/storage';
 import { COLORS } from '../constants/colors';
 
-export default function HomeScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+export default function HomeScreen({ navigation }: Props) {
   const [username, setUsername] = useState<string | null>(null);
   const [sparks, setSparks] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
+    const init = async () => {
       const done = await Storage.isTutorialDone();
-      if (!done) { router.replace('/tutorial'); return; }
+      if (!done) { navigation.replace('Tutorial'); return; }
       const [name, sp] = await Promise.all([Storage.getUsername(), Storage.getSparks()]);
       setUsername(name);
       setSparks(sp);
       setLoading(false);
-    })();
+    };
+    init();
   }, []);
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />
-      </SafeAreaView>
-    );
-  }
+  if (loading) return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.logo}>🎨 Doodle Dash</Text>
@@ -44,30 +39,25 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Hero */}
         <View style={styles.hero}>
           <Text style={styles.heroEmoji}>✏️</Text>
           <Text style={styles.heroTitle}>Ready to draw?</Text>
           <Text style={styles.heroSub}>Get a prompt, draw it in 60 seconds,{'\n'}let the world judge your masterpiece.</Text>
         </View>
 
-        {/* Actions */}
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.playBtn} onPress={() => router.push('/play')}>
+          <TouchableOpacity style={styles.playBtn} onPress={() => navigation.navigate('Play')}>
             <Text style={styles.playBtnText}>🎯 Start Drawing</Text>
           </TouchableOpacity>
-
           <View style={styles.secondaryRow}>
-            <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.push('/gallery')}>
+            <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('Gallery')}>
               <Text style={styles.secondaryIcon}>🖼️</Text>
               <Text style={styles.secondaryLabel}>My Gallery</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.push('/tutorial')}>
+            <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('Tutorial')}>
               <Text style={styles.secondaryIcon}>📖</Text>
               <Text style={styles.secondaryLabel}>How to Play</Text>
             </TouchableOpacity>
-
             <TouchableOpacity style={styles.secondaryBtn}>
               <Text style={styles.secondaryIcon}>🏆</Text>
               <Text style={styles.secondaryLabel}>Leaderboard</Text>
@@ -76,13 +66,12 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Sketchbook progress */}
         <View style={styles.sketchbook}>
           <Text style={styles.sketchbookTitle}>📓 Sketchbook 1: First Day Doodles</Text>
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${Math.min((sparks / 500) * 100, 100)}%` }]} />
           </View>
-          <Text style={styles.progressLabel}>{sparks} / 500 ⚡ Sparks to unlock Sketchbook 2</Text>
+          <Text style={styles.progressLabel}>{sparks} / 500 ⚡ to unlock Sketchbook 2</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -105,10 +94,7 @@ const styles = StyleSheet.create({
   playBtn: { backgroundColor: COLORS.primary, borderRadius: 20, padding: 20, alignItems: 'center' },
   playBtnText: { fontSize: 20, fontWeight: '900', color: '#fff' },
   secondaryRow: { flexDirection: 'row', gap: 8 },
-  secondaryBtn: {
-    flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 14,
-    alignItems: 'center', gap: 4, elevation: 1,
-  },
+  secondaryBtn: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 14, alignItems: 'center', gap: 4, elevation: 1 },
   secondaryIcon: { fontSize: 28 },
   secondaryLabel: { fontSize: 12, fontWeight: '700', color: COLORS.text },
   comingSoon: { fontSize: 9, color: COLORS.primary, fontWeight: '700' },
