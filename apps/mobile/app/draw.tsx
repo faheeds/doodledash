@@ -10,7 +10,7 @@ import CountdownTimer from '../components/canvas/CountdownTimer';
 import { useDrawing } from '../hooks/useDrawing';
 import { useTimer } from '../hooks/useTimer';
 import { Storage } from '../utils/storage';
-import { GAME_CONSTANTS } from '../../../packages/shared';
+import { GAME_CONSTANTS } from '../constants/game';
 import { COLORS } from '../constants/colors';
 
 export default function DrawScreen() {
