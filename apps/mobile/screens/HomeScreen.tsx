@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../App';
 import { Storage } from '../utils/storage';
+import { checkLockStatus } from '../utils/safety';
 import { COLORS } from '../constants/colors';
 import { FramePreview } from './FrameShopScreen';
 
@@ -20,6 +21,17 @@ export default function HomeScreen({ navigation }: Props) {
   const init = useCallback(async () => {
     const done = await Storage.isTutorialDone();
     if (!done) { navigation.replace('Tutorial'); return; }
+
+    // Check if user is currently locked out
+    const userId = await Storage.getUserId();
+    if (userId) {
+      const lockStatus = await checkLockStatus(userId);
+      if (lockStatus.locked) {
+        navigation.replace('Lock', { lockedUntil: lockStatus.until.toISOString() });
+        return;
+      }
+    }
+
     const today = new Date().toISOString().slice(0, 10);
     const [name, sp, ss, frame, dailyDate] = await Promise.all([
       Storage.getUsername(),
@@ -36,7 +48,7 @@ export default function HomeScreen({ navigation }: Props) {
     setLoading(false);
   }, []);
 
-  useFocusEffect(init);
+  useFocusEffect(useCallback(() => { init(); }, [init]));
 
   if (loading) return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;
 
@@ -85,7 +97,7 @@ export default function HomeScreen({ navigation }: Props) {
               <Text style={styles.secondaryLabel}>My Gallery</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('FrameShop')}>
-              <Text style={styles.secondaryIcon}>🖼️</Text>
+              <Text style={styles.secondaryIcon}>🎭</Text>
               <Text style={styles.secondaryLabel}>Frames</Text>
             </TouchableOpacity>
           </View>
@@ -100,6 +112,11 @@ export default function HomeScreen({ navigation }: Props) {
             <View style={[styles.progressFill, { width: `${Math.min((sparks / 150) * 100, 100)}%` }]} />
           </View>
           <Text style={styles.progressLabel}>{sparks} / 150 ⚡ to unlock Animal Antics</Text>
+        </TouchableOpacity>
+
+        {/* Footer */}
+        <TouchableOpacity style={styles.footer} onPress={() => navigation.navigate('Policy')}>
+          <Text style={styles.footerText}>Privacy Policy & Terms</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -132,7 +149,6 @@ const styles = StyleSheet.create({
   secondaryBtn: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 14, alignItems: 'center', gap: 4, elevation: 1 },
   secondaryIcon: { fontSize: 28 },
   secondaryLabel: { fontSize: 12, fontWeight: '700', color: COLORS.text },
-  comingSoon: { fontSize: 9, color: COLORS.primary, fontWeight: '700' },
   doneDot: { fontSize: 10, color: '#22C55E', fontWeight: '900' },
   sketchbook: { backgroundColor: '#fff', borderRadius: 16, padding: 16, elevation: 1 },
   sketchbookRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
@@ -141,4 +157,6 @@ const styles = StyleSheet.create({
   progressBar: { height: 8, backgroundColor: '#F0EDE8', borderRadius: 4, overflow: 'hidden', marginBottom: 6 },
   progressFill: { height: '100%', backgroundColor: COLORS.primary, borderRadius: 4 },
   progressLabel: { fontSize: 12, color: COLORS.textLight },
+  footer: { alignItems: 'center', paddingVertical: 12, marginTop: 'auto' },
+  footerText: { fontSize: 11, color: COLORS.textLight, textDecorationLine: 'underline' },
 });

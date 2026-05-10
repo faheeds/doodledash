@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, ScrollView,
-  TouchableOpacity, ActivityIndicator,
+  TouchableOpacity, ActivityIndicator, Alert,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { supabase, subscribeToMatch } from '../utils/supabase';
+import { reportDrawing } from '../utils/safety';
 import { COLORS } from '../constants/colors';
 import { PROMPTS } from '../constants/prompts';
 import { Storage } from '../utils/storage';
@@ -20,13 +21,28 @@ export default function MultiResultScreen({ navigation, route }: Props) {
   const [tallies, setTallies] = useState<VoteTally[]>([]);
   const [loading, setLoading] = useState(true);
   const [nextMatchState, setNextMatchState] = useState<any>(null);
+  const [reported, setReported] = useState<Set<string>>(new Set());
+  const [reporting, setReporting] = useState(false);
   const isLastRound = round >= totalRounds;
+
+  // Map drawing_id → player_id so we can report
+  const [drawingPlayerMap, setDrawingPlayerMap] = useState<Record<string, string>>({});
 
   // Deterministic hash for bot vote synthesis
   const hashStr = (s: string) => s.split('').reduce((h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0, 0) >>> 0;
 
   useEffect(() => {
     const load = async () => {
+      // Load drawing → player_id mapping for reports
+      const { data: drawingRows } = await supabase.from('drawings').select('id,player_id', {
+        eqs: [['match_id', matchId], ['round_number', round]],
+      });
+      const dpMap: Record<string, string> = {};
+      for (const dr of (drawingRows || [])) {
+        if (dr.player_id) dpMap[dr.id] = dr.player_id;
+      }
+      setDrawingPlayerMap(dpMap);
+
       // Real human votes
       const { data: voteRows } = await supabase.from('votes').select('drawing_id,category', { eq: ['match_id', matchId] });
 
@@ -98,6 +114,42 @@ export default function MultiResultScreen({ navigation, route }: Props) {
     }
   };
 
+  const handleReport = (tally: VoteTally) => {
+    const reportedPlayerId = drawingPlayerMap[tally.drawing_id];
+    if (!reportedPlayerId || reportedPlayerId === userId) return;
+    if (reported.has(tally.drawing_id)) {
+      Alert.alert('Already Reported', 'You already flagged this drawing.');
+      return;
+    }
+    Alert.alert(
+      '🚩 Report Drawing',
+      `Flag ${tally.display_name}'s drawing as inappropriate?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Yes, Report',
+          style: 'destructive',
+          onPress: async () => {
+            setReporting(true);
+            const result = await reportDrawing({
+              reporterUserId: userId,
+              reportedUserId: reportedPlayerId,
+              drawingId: tally.drawing_id,
+              matchId,
+            });
+            setReporting(false);
+            if (result.ok) {
+              setReported(prev => new Set([...prev, tally.drawing_id]));
+              Alert.alert('✅ Thanks!', 'We got your report. Keep it fun! 🎨');
+            } else {
+              Alert.alert('Oops', 'Could not send report. Try again later.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const winner = tallies[0];
 
   if (loading) {
@@ -133,19 +185,33 @@ export default function MultiResultScreen({ navigation, route }: Props) {
         )}
 
         <Text style={styles.sectionLabel}>ALL RESULTS</Text>
-        {tallies.map((t, i) => (
-          <View key={t.drawing_id} style={[styles.resultRow, t.display_name === username && styles.myRow]}>
-            <Text style={styles.rank}>#{i + 1}</Text>
-            <View style={styles.resultThumb}>
-              {t.svg_data ? <SvgXml xml={t.svg_data} width="100%" height="100%" /> : <Text>🎨</Text>}
+        {tallies.map((t, i) => {
+          const isMe = t.display_name === username;
+          const canReport = !isMe && !!drawingPlayerMap[t.drawing_id];
+          const alreadyReported = reported.has(t.drawing_id);
+          return (
+            <View key={t.drawing_id} style={[styles.resultRow, isMe && styles.myRow]}>
+              <Text style={styles.rank}>#{i + 1}</Text>
+              <View style={styles.resultThumb}>
+                {t.svg_data ? <SvgXml xml={t.svg_data} width="100%" height="100%" /> : <Text>🎨</Text>}
+              </View>
+              <View style={styles.resultInfo}>
+                <Text style={styles.resultName}>{t.display_name}{isMe ? ' (you)' : ''}</Text>
+                <Text style={styles.resultVotes}>✨{t.most_creative} 😂{t.funniest} 🎯{t.best_match}</Text>
+              </View>
+              <Text style={styles.totalVotes}>{t.total}</Text>
+              {canReport && (
+                <TouchableOpacity
+                  onPress={() => handleReport(t)}
+                  style={[styles.reportBtn, alreadyReported && styles.reportBtnDone]}
+                  disabled={reporting || alreadyReported}
+                >
+                  <Text style={styles.reportBtnText}>🚩</Text>
+                </TouchableOpacity>
+              )}
             </View>
-            <View style={styles.resultInfo}>
-              <Text style={styles.resultName}>{t.display_name}</Text>
-              <Text style={styles.resultVotes}>✨{t.most_creative} 😂{t.funniest} 🎯{t.best_match}</Text>
-            </View>
-            <Text style={styles.totalVotes}>{t.total}</Text>
-          </View>
-        ))}
+          );
+        })}
 
         <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
           <Text style={styles.nextBtnText}>{isLastRound ? '🏠 Back to Home' : `Round ${round + 1} →`}</Text>
@@ -177,6 +243,12 @@ const styles = StyleSheet.create({
   resultName: { fontSize: 15, fontWeight: '800', color: COLORS.text },
   resultVotes: { fontSize: 13, color: COLORS.textLight, marginTop: 2 },
   totalVotes: { fontSize: 16, fontWeight: '900', color: COLORS.primary },
+  reportBtn: {
+    backgroundColor: '#FEE2E2', borderRadius: 10,
+    paddingHorizontal: 8, paddingVertical: 5, marginLeft: 4,
+  },
+  reportBtnDone: { backgroundColor: '#F3F4F6' },
+  reportBtnText: { fontSize: 14 },
   nextBtn: { backgroundColor: COLORS.primary, borderRadius: 20, paddingVertical: 16, alignItems: 'center', marginTop: 16 },
   nextBtnText: { fontSize: 18, fontWeight: '900', color: '#fff' },
 });

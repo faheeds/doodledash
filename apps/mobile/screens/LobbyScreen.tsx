@@ -6,6 +6,7 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { ensureAnonSession, generateRoomCode, getAccessToken } from '../utils/supabase';
+import { checkLockStatus } from '../utils/safety';
 import { Storage } from '../utils/storage';
 import { COLORS } from '../constants/colors';
 
@@ -37,12 +38,21 @@ export default function LobbyScreen({ navigation }: Props) {
   const [error, setError] = useState('');
 
   const getOrCreateUser = async (authId: string, username: string, token: string | null) => {
-    // Try to find existing user
+    // Try to find existing user first
     const { data: existing } = await rest(`/users?auth_id=eq.${authId}&select=id`, 'GET', undefined, token);
     if (Array.isArray(existing) && existing[0]?.id) return existing[0].id as string;
-    // Create new
-    const { data: created } = await rest('/users', 'POST', { auth_id: authId, username }, token);
-    const row = Array.isArray(created) ? created[0] : created;
+
+    // First insert attempt
+    const { ok, data: created } = await rest('/users', 'POST', { auth_id: authId, username }, token);
+    if (ok) {
+      const row = Array.isArray(created) ? created[0] : created;
+      if (row?.id) return row.id as string;
+    }
+
+    // Username conflict or other error — retry with a unique suffix
+    const suffix = Math.floor(Math.random() * 9000) + 1000;
+    const { data: retried } = await rest('/users', 'POST', { auth_id: authId, username: `${username}${suffix}` }, token);
+    const row = Array.isArray(retried) ? retried[0] : retried;
     return row?.id as string | null;
   };
 
@@ -57,6 +67,20 @@ export default function LobbyScreen({ navigation }: Props) {
 
       const userId = await getOrCreateUser(authId, username, token);
       if (!userId) throw new Error('Could not create user profile.');
+
+      // Persist userId and check lock
+      await Storage.setUserId(userId);
+      const lockStatus = await checkLockStatus(userId);
+      if (lockStatus.locked) {
+        navigation.replace('Lock', { lockedUntil: lockStatus.until.toISOString() });
+        return;
+      }
+
+      // Submit parent email if provided and not yet submitted
+      const parentEmail = await Storage.getParentEmail();
+      if (parentEmail) {
+        await rest(`/users?id=eq.${userId}`, 'PATCH', { parent_email: parentEmail }, token);
+      }
 
       const { data: matchData } = await rest('/matches', 'POST', {
         room_code: roomCode, status: 'lobby', total_rounds: 5, host_user_id: userId,
@@ -93,6 +117,20 @@ export default function LobbyScreen({ navigation }: Props) {
 
       const userId = await getOrCreateUser(authId, username, token);
       if (!userId) throw new Error('Could not create user profile.');
+
+      // Persist userId and check lock
+      await Storage.setUserId(userId);
+      const lockStatus = await checkLockStatus(userId);
+      if (lockStatus.locked) {
+        navigation.replace('Lock', { lockedUntil: lockStatus.until.toISOString() });
+        return;
+      }
+
+      // Submit parent email if provided
+      const parentEmail = await Storage.getParentEmail();
+      if (parentEmail) {
+        await rest(`/users?id=eq.${userId}`, 'PATCH', { parent_email: parentEmail }, token);
+      }
 
       await rest('/match_players', 'POST', {
         match_id: match.id, user_id: userId, display_name: username, is_ready: false, is_bot: false,

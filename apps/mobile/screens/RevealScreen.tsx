@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, ScrollView,
-  TouchableOpacity, ActivityIndicator,
+  View, Text, StyleSheet, SafeAreaView,
+  TouchableOpacity, ActivityIndicator, Alert,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { supabase } from '../utils/supabase';
+import { reportDrawing } from '../utils/safety';
 import { COLORS } from '../constants/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Reveal'>;
@@ -24,15 +25,15 @@ export default function RevealScreen({ navigation, route }: Props) {
   const [drawings, setDrawings] = useState<Drawing[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [reported, setReported] = useState<Set<string>>(new Set());
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      // Load drawings for this round
       const { data: drawingRows } = await supabase.from('drawings').select('id, player_id, svg_data', {
         eqs: [['match_id', matchId], ['round_number', round]],
       });
 
-      // Load player names
       const { data: players } = await supabase.from('match_players').select('user_id, display_name, is_bot', {
         eq: ['match_id', matchId],
       });
@@ -50,7 +51,6 @@ export default function RevealScreen({ navigation, route }: Props) {
         is_bot: d.player_id ? (playerMap[d.player_id]?.isBot ?? false) : true,
       }));
 
-      // Shuffle order for fun reveal
       const shuffled = [...merged].sort(() => Math.random() - 0.5);
       setDrawings(shuffled);
       setLoading(false);
@@ -63,6 +63,47 @@ export default function RevealScreen({ navigation, route }: Props) {
       matchId, roomCode, userId, username, prompt, round, totalRounds, isHost,
       drawings: drawings.map(d => ({ id: d.id, display_name: d.display_name, svg_data: d.svg_data })),
     });
+  };
+
+  const handleReport = (drawing: Drawing) => {
+    if (!drawing.player_id || drawing.player_id === userId || drawing.is_bot) return;
+    if (reported.has(drawing.id)) {
+      Alert.alert('Already Reported', 'You already flagged this drawing.');
+      return;
+    }
+
+    Alert.alert(
+      '🚩 Report Drawing',
+      `Flag ${drawing.display_name}'s drawing as inappropriate?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Yes, Report',
+          style: 'destructive',
+          onPress: async () => {
+            setReporting(true);
+            const result = await reportDrawing({
+              reporterUserId: userId,
+              reportedUserId: drawing.player_id!,
+              drawingId: drawing.id,
+              matchId,
+            });
+            setReporting(false);
+
+            if (result.ok) {
+              setReported(prev => new Set([...prev, drawing.id]));
+              if (result.nowLocked) {
+                Alert.alert('⚠️ Reported', `${drawing.display_name} has been given a 30-minute cool-down.`);
+              } else {
+                Alert.alert('✅ Thanks!', 'We got your report. Keep it fun and friendly! 🎨');
+              }
+            } else {
+              Alert.alert('Oops', 'Could not send report. Try again later.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
@@ -78,6 +119,8 @@ export default function RevealScreen({ navigation, route }: Props) {
 
   const current = drawings[currentIdx];
   const isLast = currentIdx === drawings.length - 1;
+  const canReport = current && !current.is_bot && current.player_id !== userId && !!current.player_id;
+  const alreadyReported = current ? reported.has(current.id) : false;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -99,7 +142,19 @@ export default function RevealScreen({ navigation, route }: Props) {
             <Text style={styles.playerEmoji}>{current?.is_bot ? '🤖' : '🎨'}</Text>
             <Text style={styles.playerName}>{current?.display_name}</Text>
             {current?.player_id === userId && <Text style={styles.youBadge}>you!</Text>}
+
+            {/* Report button — only for other human players */}
+            {canReport && (
+              <TouchableOpacity
+                onPress={() => handleReport(current)}
+                style={[styles.reportBtn, alreadyReported && styles.reportBtnDone]}
+                disabled={reporting || alreadyReported}
+              >
+                <Text style={styles.reportBtnText}>{alreadyReported ? '🚩' : '🚩'}</Text>
+              </TouchableOpacity>
+            )}
           </View>
+          {alreadyReported && <Text style={styles.reportedLabel}>Reported</Text>}
         </View>
 
         {/* Navigation dots */}
@@ -153,6 +208,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3,
     color: '#fff', fontSize: 12, fontWeight: '700',
   },
+  reportBtn: {
+    backgroundColor: '#FEE2E2', borderRadius: 12,
+    paddingHorizontal: 10, paddingVertical: 5,
+  },
+  reportBtnDone: { backgroundColor: '#F3F4F6' },
+  reportBtnText: { fontSize: 16 },
+  reportedLabel: { fontSize: 11, color: '#EF4444', textAlign: 'right', marginTop: 2, paddingHorizontal: 4 },
   dots: { flexDirection: 'row', gap: 6, marginBottom: 16 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5E7EB' },
   dotActive: { backgroundColor: COLORS.primary, width: 20 },

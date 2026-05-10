@@ -10,6 +10,8 @@ const KEYS = {
   STYLE_STARS: 'dd_style_stars',
   ACTIVE_FRAME: 'dd_active_frame',
   OWNED_FRAMES: 'dd_owned_frames',
+  USER_ID: 'dd_user_id',          // DB user ID — persisted after first multiplayer join
+  PARENT_EMAIL: 'dd_parent_email',
 };
 
 export type GalleryEntry = {
@@ -76,6 +78,14 @@ export const Storage = {
     await AsyncStorage.setItem(KEYS.STYLE_STARS, String(current - amount));
     return true;
   },
+
+  // DB user ID (set after first multiplayer match)
+  async getUserId(): Promise<string | null> { return AsyncStorage.getItem(KEYS.USER_ID); },
+  async setUserId(id: string): Promise<void> { return AsyncStorage.setItem(KEYS.USER_ID, id); },
+
+  // Parent email (optional, from tutorial)
+  async getParentEmail(): Promise<string | null> { return AsyncStorage.getItem(KEYS.PARENT_EMAIL); },
+  async setParentEmail(email: string): Promise<void> { return AsyncStorage.setItem(KEYS.PARENT_EMAIL, email); },
 
   // Avatar frames
   async getOwnedFrames(): Promise<string[]> {

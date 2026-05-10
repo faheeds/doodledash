@@ -19,6 +19,8 @@ import SketchbookScreen from './screens/SketchbookScreen';
 import LevelSelectScreen from './screens/LevelSelectScreen';
 import DailyDoodleScreen from './screens/DailyDoodleScreen';
 import FrameShopScreen from './screens/FrameShopScreen';
+import LockScreen from './screens/LockScreen';
+import PolicyScreen from './screens/PolicyScreen';
 
 type VoteDrawing = { id: string; display_name: string; svg_data: string };
 
@@ -33,6 +35,9 @@ export type RootStackParamList = {
   Draw: { prompt: string; sketchbookId?: number; level?: number; isDailyDoodle?: boolean };
   Result: { prompt: string; entryId: string; sketchbookId?: number; level?: number; isDailyDoodle?: boolean };
   Gallery: undefined;
+  // Phase 5: Safety
+  Lock: { lockedUntil: string };
+  Policy: undefined;
   // Multiplayer
   Lobby: undefined;
   WaitingRoom: {
@@ -105,6 +110,9 @@ export default function App() {
         <Stack.Screen name="LevelSelect" component={LevelSelectScreen} />
         <Stack.Screen name="DailyDoodle" component={DailyDoodleScreen} />
         <Stack.Screen name="FrameShop" component={FrameShopScreen} />
+        {/* Phase 5: Safety */}
+        <Stack.Screen name="Lock" component={LockScreen} options={{ gestureEnabled: false }} />
+        <Stack.Screen name="Policy" component={PolicyScreen} />
         {/* Multiplayer */}
         <Stack.Screen name="Lobby" component={LobbyScreen} />
         <Stack.Screen name="WaitingRoom" component={WaitingRoomScreen} options={{ gestureEnabled: false }} />
