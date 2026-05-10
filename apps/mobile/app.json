@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Doodle Dash",
+    "slug": "doodle-dash",
+    "version": "0.1.0",
+    "sdkVersion": "54.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "doodledash",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f97316"
+    },
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.doodledash.app" },
+    "android": {
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#f97316" },
+      "package": "com.doodledash.app"
+    },
+    "plugins": ["expo-font"]
+  }
+}

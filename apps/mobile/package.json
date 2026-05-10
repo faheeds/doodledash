@@ -1,0 +1,31 @@
+{
+  "name": "mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "node node_modules/expo/bin/cli start --clear",
+    "android": "node node_modules/expo/bin/cli start --android --clear",
+    "ios": "node node_modules/expo/bin/cli start --ios --clear"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-navigation/native": "^7.0.14",
+    "@react-navigation/native-stack": "^7.2.0",
+    "expo": "~54.0.33",
+    "expo-asset": "~11.0.4",
+    "expo-constants": "~17.0.8",
+    "expo-font": "~13.0.4",
+    "expo-status-bar": "~2.2.3",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.10.0",
+    "react-native-svg": "~15.11.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.2"
+  },
+  "private": true
+}
