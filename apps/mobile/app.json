@@ -2,7 +2,7 @@
   "expo": {
     "name": "Doodle Dash",
     "slug": "doodle-dash",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "sdkVersion": "54.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,11 +13,30 @@
       "resizeMode": "contain",
       "backgroundColor": "#f97316"
     },
-    "ios": { "supportsTablet": false, "bundleIdentifier": "com.doodledash.app" },
-    "android": {
-      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#f97316" },
-      "package": "com.doodledash.app"
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.doodledash.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Doodle Dash uses the camera for sharing drawings.",
+        "NSPhotoLibraryUsageDescription": "Save your drawings to your photo library.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
-    "plugins": ["expo-font"]
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#f97316"
+      },
+      "package": "com.doodledash.app",
+      "versionCode": 1,
+      "permissions": []
+    },
+    "plugins": ["expo-font", "expo-haptics"],
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    }
   }
 }

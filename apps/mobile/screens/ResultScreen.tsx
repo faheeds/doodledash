@@ -7,6 +7,7 @@ import { SvgXml } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { Storage } from '../utils/storage';
+import { haptics } from '../utils/haptics';
 import { SKETCHBOOKS } from '../constants/prompts';
 import { supabase, ensureAnonSession } from '../utils/supabase';
 import { COLORS } from '../constants/colors';
@@ -21,7 +22,6 @@ type JudgeResult = {
 const JUDGE_URL = 'https://doodle-dash-pi.vercel.app/api/judge';
 
 function sparksForScore(score: number): number {
-  // 10 sparks minimum, up to 60 for a perfect score
   return Math.round(10 + (score / 100) * 50);
 }
 
@@ -33,6 +33,53 @@ function scoreLabel(score: number): string {
   return '🎨 Keep doodling!';
 }
 
+// Confetti particle colors
+const CONFETTI_COLORS = ['#F97316', '#8B5CF6', '#22C55E', '#FACC15', '#EC4899', '#3B82F6', '#EF4444', '#14B8A6'];
+
+function Confetti({ score }: { score: number }) {
+  const particles = useRef(
+    Array.from({ length: 8 }, (_, i) => ({
+      anim: new Animated.Value(0),
+      angle: (i / 8) * Math.PI * 2,
+      color: CONFETTI_COLORS[i],
+    }))
+  ).current;
+
+  useEffect(() => {
+    const animations = particles.map(p =>
+      Animated.spring(p.anim, { toValue: 1, useNativeDriver: true, friction: 4, tension: 40 })
+    );
+    Animated.stagger(40, animations).start();
+  }, []);
+
+  const radius = score >= 80 ? 90 : score >= 60 ? 70 : 50;
+
+  return (
+    <View style={confettiStyles.container} pointerEvents="none">
+      {particles.map((p, i) => {
+        const tx = p.anim.interpolate({ inputRange: [0, 1], outputRange: [0, Math.cos(p.angle) * radius] });
+        const ty = p.anim.interpolate({ inputRange: [0, 1], outputRange: [0, Math.sin(p.angle) * radius] });
+        const scale = p.anim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 1.3, 1] });
+        const opacity = p.anim.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 1, 0.7] });
+        return (
+          <Animated.View
+            key={i}
+            style={[
+              confettiStyles.dot,
+              { backgroundColor: p.color },
+              { opacity, transform: [{ translateX: tx }, { translateY: ty }, { scale }] },
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+}
+const confettiStyles = StyleSheet.create({
+  container: { position: 'absolute', alignItems: 'center', justifyContent: 'center', top: '50%', left: '50%' },
+  dot: { position: 'absolute', width: 10, height: 10, borderRadius: 5 },
+});
+
 export default function ResultScreen({ navigation, route }: Props) {
   const { prompt, entryId, sketchbookId, level, isDailyDoodle } = route.params;
 
@@ -42,14 +89,70 @@ export default function ResultScreen({ navigation, route }: Props) {
   const [username, setUsername] = useState('');
   const [sparksEarned, setSparksEarned] = useState(0);
   const [levelJustCompleted, setLevelJustCompleted] = useState(false);
-  const [prevBest, setPrevBest] = useState(0);
   const [isNewBest, setIsNewBest] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  // Animation for sparks pop
+  // Animated count-up score display
+  const [displayScore, setDisplayScore] = useState(0);
+  const countIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Animation refs
   const sparksScale = useRef(new Animated.Value(0)).current;
   const levelBannerOpacity = useRef(new Animated.Value(0)).current;
+  const scoreShake = useRef(new Animated.Value(0)).current;
+  const fadeIn = useRef(new Animated.Value(0)).current;
 
   const sb = sketchbookId ? SKETCHBOOKS.find(s => s.id === sketchbookId) : null;
+
+  // Fade in the whole screen
+  useEffect(() => {
+    Animated.timing(fadeIn, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+  }, []);
+
+  const revealScore = (finalScore: number) => {
+    // Count up from 0 to score over ~1.2s
+    const duration = 1200;
+    const steps = 40;
+    const interval = duration / steps;
+    let current = 0;
+
+    countIntervalRef.current = setInterval(() => {
+      current += finalScore / steps;
+      const rounded = Math.min(Math.round(current), finalScore);
+      setDisplayScore(rounded);
+
+      // Tick haptic every 10 points
+      if (Math.round(current) % 10 === 0 && Math.round(current) > 0) {
+        haptics.selection();
+      }
+
+      if (rounded >= finalScore) {
+        if (countIntervalRef.current) clearInterval(countIntervalRef.current);
+        // Final reveal haptic
+        if (finalScore >= 80) haptics.success();
+        else if (finalScore >= 60) haptics.medium();
+        else haptics.light();
+
+        // Show confetti for good scores
+        if (finalScore >= 60) setShowConfetti(true);
+
+        // Shake the score for high scores
+        if (finalScore >= 85) {
+          Animated.sequence([
+            Animated.timing(scoreShake, { toValue: 8, duration: 60, useNativeDriver: true }),
+            Animated.timing(scoreShake, { toValue: -8, duration: 60, useNativeDriver: true }),
+            Animated.timing(scoreShake, { toValue: 5, duration: 60, useNativeDriver: true }),
+            Animated.timing(scoreShake, { toValue: -5, duration: 60, useNativeDriver: true }),
+            Animated.timing(scoreShake, { toValue: 0, duration: 60, useNativeDriver: true }),
+          ]).start();
+        }
+      }
+    }, interval);
+  };
+
+  useEffect(() => {
+    return () => { if (countIntervalRef.current) clearInterval(countIntervalRef.current); };
+  }, []);
 
   useEffect(() => {
     const run = async () => {
@@ -62,13 +165,6 @@ export default function ResultScreen({ navigation, route }: Props) {
       const entry = gallery.find(e => e.id === entryId);
       if (entry) setSvgData(entry.svgData);
 
-      // Capture previous best for comparison later
-      if (sketchbookId && level) {
-        const key = `${sketchbookId}_${level}`;
-        setPrevBest(existingProgress[key]?.bestScore || 0);
-      }
-
-      let judgeScore = 70; // fallback
       let judgeResult: JudgeResult = {
         score: 70,
         feedback: 'Great creative energy!',
@@ -82,32 +178,30 @@ export default function ResultScreen({ navigation, route }: Props) {
           body: JSON.stringify({ prompt, svgData: entry?.svgData || '', playerUsername: name }),
         });
         if (res.ok) {
-          judgeResult = await res.json();
-          judgeScore = judgeResult.score;
-          if (entryId) await Storage.updateGalleryEntry(entryId, { aiScore: judgeScore, aiFeedback: judgeResult.feedback });
+          const j = await res.json();
+          judgeResult = j;
+          if (entryId) await Storage.updateGalleryEntry(entryId, { aiScore: j.score, aiFeedback: j.feedback });
         }
-      } catch {
-        // use fallback
-      }
+      } catch {}
 
       setResult(judgeResult);
 
-      // Award sparks
-      const earned = sparksForScore(judgeScore);
+      const earned = sparksForScore(judgeResult.score);
       setSparksEarned(earned);
       await Storage.addSparks(earned);
 
-      // Save level progress if in sketchbook mode
       if (sketchbookId && level) {
         const key = `${sketchbookId}_${level}`;
-        const existingBest = existingProgress[key]?.bestScore || 0;
+        const prevBest = existingProgress[key]?.bestScore || 0;
         const wasCompleted = existingProgress[key]?.completed || false;
-        await Storage.setLevelComplete(sketchbookId, level, judgeScore);
-        setIsNewBest(judgeScore > existingBest);
-        if (!wasCompleted) setLevelJustCompleted(true);
+        await Storage.setLevelComplete(sketchbookId, level, judgeResult.score);
+        setIsNewBest(judgeResult.score > prevBest);
+        if (!wasCompleted) {
+          setLevelJustCompleted(true);
+          haptics.heavy();
+        }
       }
 
-      // Save Daily Doodle to Supabase and mark today locally
       if (isDailyDoodle) {
         const todayStr = new Date().toISOString().slice(0, 10);
         await Storage.setDailyDoodleDate(todayStr);
@@ -115,34 +209,26 @@ export default function ResultScreen({ navigation, route }: Props) {
           const userId = await ensureAnonSession();
           if (userId) {
             await supabase.from('daily_doodles').insert({
-              user_id: userId,
-              display_name: name || 'Anonymous',
-              prompt,
-              svg_data: entry?.svgData || '',
-              sparks_earned: earned,
-              doodle_date: todayStr,
+              user_id: userId, display_name: name || 'Anonymous',
+              prompt, svg_data: entry?.svgData || '',
+              sparks_earned: earned, doodle_date: todayStr,
             });
           }
-        } catch {
-          // Not critical — local mark is enough
-        }
+        } catch {}
       }
 
       setJudging(false);
 
-      // Animate sparks
-      Animated.spring(sparksScale, { toValue: 1, useNativeDriver: true, friction: 4 }).start();
-      if (!judging) {
-        Animated.timing(levelBannerOpacity, { toValue: 1, duration: 400, useNativeDriver: true, delay: 300 }).start();
-      }
+      // Start score count-up and sparks pop
+      revealScore(judgeResult.score);
+      Animated.spring(sparksScale, { toValue: 1, useNativeDriver: true, friction: 4, delay: 1400 }).start();
     };
     run();
   }, []);
 
-  // Trigger banner animation after judging completes
   useEffect(() => {
     if (!judging && levelJustCompleted) {
-      Animated.timing(levelBannerOpacity, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+      Animated.timing(levelBannerOpacity, { toValue: 1, duration: 500, useNativeDriver: true, delay: 200 }).start();
     }
   }, [judging, levelJustCompleted]);
 
@@ -151,18 +237,18 @@ export default function ResultScreen({ navigation, route }: Props) {
     : COLORS.primary;
 
   const handlePlayAgain = () => {
-    if (isDailyDoodle) {
-      navigation.navigate('DailyDoodle');
-    } else if (sketchbookId && level) {
-      navigation.navigate('LevelSelect', { sketchbookId });
-    } else {
-      navigation.navigate('Play');
-    }
+    if (isDailyDoodle) navigation.navigate('DailyDoodle');
+    else if (sketchbookId && level) navigation.navigate('LevelSelect', { sketchbookId });
+    else navigation.navigate('Play');
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <Animated.ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        style={{ opacity: fadeIn }}
+      >
         {/* Drawing preview */}
         <View style={styles.preview}>
           {svgData
@@ -178,12 +264,12 @@ export default function ResultScreen({ navigation, route }: Props) {
             <Text style={styles.levelBannerEmoji}>{sb.emoji}</Text>
             <View>
               <Text style={styles.levelBannerTitle}>Level {level} Complete!</Text>
-              <Text style={styles.levelBannerSub}>{sb.title} — Level {level} unlocked the next one</Text>
+              <Text style={styles.levelBannerSub}>{sb.title} — keep going!</Text>
             </View>
           </Animated.View>
         )}
 
-        {/* New best score */}
+        {/* New best */}
         {isNewBest && !levelJustCompleted && !judging && (
           <View style={styles.newBestBanner}>
             <Text style={styles.newBestText}>🏆 New best score for this level!</Text>
@@ -199,7 +285,16 @@ export default function ResultScreen({ navigation, route }: Props) {
             </View>
           ) : result ? (
             <>
-              <Text style={[styles.score, { color: scoreColor }]}>{result.score}/100</Text>
+              {/* Animated score */}
+              <View style={styles.scoreContainer}>
+                <Animated.Text
+                  style={[styles.score, { color: scoreColor, transform: [{ translateX: scoreShake }] }]}
+                >
+                  {displayScore}
+                </Animated.Text>
+                <Text style={[styles.scoreOutOf, { color: scoreColor }]}>/100</Text>
+                {showConfetti && <Confetti score={result.score} />}
+              </View>
               <Text style={styles.scoreLabel}>{scoreLabel(result.score)}</Text>
               <Text style={styles.feedback}>"{result.feedback}"</Text>
               <View style={styles.breakdown}>
@@ -218,7 +313,7 @@ export default function ResultScreen({ navigation, route }: Props) {
             <View>
               <Text style={styles.sparksMain}>+{sparksEarned} Sparks earned!</Text>
               {sketchbookId && level && (
-                <Text style={styles.sparksSub}>from {sb?.title} · Level {level}</Text>
+                <Text style={styles.sparksSub}>{sb?.title} · Level {level}</Text>
               )}
             </View>
           </Animated.View>
@@ -226,26 +321,38 @@ export default function ResultScreen({ navigation, route }: Props) {
 
         {/* Actions */}
         <View style={styles.actions}>
-          <TouchableOpacity style={[styles.btn, styles.btnPrimary]} onPress={() => navigation.navigate('Home')}>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnPrimary]}
+            onPress={() => { haptics.light(); navigation.navigate('Home'); }}
+          >
             <Text style={styles.btnText}>🏠 Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn, styles.btnSecondary]} onPress={handlePlayAgain}>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnSecondary]}
+            onPress={() => { haptics.light(); handlePlayAgain(); }}
+          >
             <Text style={[styles.btnText, { color: COLORS.primary }]}>
               {isDailyDoodle ? '📅 Daily' : sketchbookId ? '📓 Levels' : 'Again ✏️'}
             </Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }
 
 function BreakdownBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+  const widthAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(widthAnim, { toValue: (value / max) * 100, duration: 800, useNativeDriver: false, delay: 200 }).start();
+  }, [value]);
+  const width = widthAnim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] });
+
   return (
     <View style={bStyles.row}>
       <Text style={bStyles.label}>{label}</Text>
       <View style={bStyles.barBg}>
-        <View style={[bStyles.barFill, { width: `${(value / max) * 100}%`, backgroundColor: color }]} />
+        <Animated.View style={[bStyles.barFill, { width, backgroundColor: color }]} />
       </View>
       <Text style={bStyles.val}>{value}/{max}</Text>
     </View>
@@ -289,8 +396,15 @@ const styles = StyleSheet.create({
   },
   judging: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   judgingText: { fontSize: 14, color: COLORS.textLight, fontWeight: '600', flex: 1 },
-  score: { fontSize: 52, fontWeight: '900', textAlign: 'center' },
-  scoreLabel: { fontSize: 18, fontWeight: '800', color: COLORS.text, textAlign: 'center', marginTop: -4 },
+
+  scoreContainer: {
+    flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center',
+    marginBottom: 2, position: 'relative', minHeight: 70,
+  },
+  score: { fontSize: 64, fontWeight: '900', lineHeight: 70 },
+  scoreOutOf: { fontSize: 22, fontWeight: '700', marginBottom: 8, marginLeft: 2 },
+
+  scoreLabel: { fontSize: 18, fontWeight: '800', color: COLORS.text, textAlign: 'center', marginTop: 2 },
   feedback: { fontSize: 14, color: COLORS.textLight, textAlign: 'center', fontStyle: 'italic', marginVertical: 8 },
   breakdown: { marginTop: 4 },
 

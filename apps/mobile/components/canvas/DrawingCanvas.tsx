@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { View, PanResponder, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
+import { haptics } from '../../utils/haptics';
 
 export type Stroke = {
   id: string;
@@ -57,6 +58,7 @@ export default function DrawingCanvas({
       onMoveShouldSetPanResponder: () => true,
 
       onPanResponderGrant: (evt) => {
+        haptics.light();
         const { locationX, locationY } = evt.nativeEvent;
         if (toolRef.current === 'fill') {
           onNewStrokeRef.current({

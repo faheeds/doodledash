@@ -8,6 +8,7 @@ import CountdownTimer from '../components/canvas/CountdownTimer';
 import { useDrawing } from '../hooks/useDrawing';
 import { useTimer } from '../hooks/useTimer';
 import { Storage } from '../utils/storage';
+import { haptics } from '../utils/haptics';
 import { GAME_CONSTANTS } from '../constants/game';
 import { COLORS } from '../constants/colors';
 
@@ -59,6 +60,7 @@ export default function DrawScreen({ navigation, route }: Props) {
   React.useEffect(() => { strokesRef.current = strokes; }, [strokes]);
 
   const handleTimeUp = useCallback(async () => {
+    haptics.heavy();
     const entryId = Date.now().toString();
     const svgData = strokesToSVG(strokesRef.current);
     await Storage.addToGallery({ id: entryId, prompt, svgData, createdAt: new Date().toISOString() });
@@ -70,6 +72,7 @@ export default function DrawScreen({ navigation, route }: Props) {
 
   const handleMagicStamp = useCallback(() => {
     if (magicStampUsed) return;
+    haptics.success();
     setMagicStampUsed(true);
     const stamp = getRandomStamp();
     addStroke({ id: 'magic-' + Date.now(), points: stamp, color, size: 3, fillColor: color, isFill: false });
