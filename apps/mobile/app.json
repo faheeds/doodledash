@@ -13,30 +13,11 @@
       "resizeMode": "contain",
       "backgroundColor": "#f97316"
     },
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.doodledash.app",
+      "bundleIdentifier": "com.faheedsubhani.doodledash",
       "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "Doodle Dash uses the camera for sharing drawings.",
-        "NSPhotoLibraryUsageDescription": "Save your drawings to your photo library.",
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#f97316"
-      },
-      "package": "com.doodledash.app",
-      "versionCode": 1,
-      "permissions": []
-    },
-    "plugins": ["expo-font", "expo-haptics"],
-    "extra": {
-      "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
-      }
-    }
-  }
-}
+        "NSPhotoL

@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 14.0.0"
+    "version": ">= 14.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -41,13 +42,7 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "faheed.subhani@gmail.com",
-        "ascAppId": "",
-        "appleTeamId": ""
-      },
-      "android": {
-        "serviceAccountKeyPath": "./google-play-key.json",
-        "track": "internal"
+        "appleId": "faheed.subhani@gmail.com"
       }
     }
   }
